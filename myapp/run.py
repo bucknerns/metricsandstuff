@@ -3,7 +3,7 @@ from api import runs, tests
 from myapp.subunitdb.client import SubunitClient
 
 
-client = SubunitClient("mysql://root:q1w2e3r4@127.0.0.1/subunit")
+client = SubunitClient("mysql://root:abc123@127.0.0.1/subunit")
 calls = [runs.TestsByRunID, tests.Tests, tests.Test, runs.Runs, runs.Run]
 
 
