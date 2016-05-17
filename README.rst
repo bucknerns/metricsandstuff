@@ -13,11 +13,11 @@ MySQL
 
 1. Update the package list:
 ::
-    > apt-get install mysql-server libmysqlclient-dev python-dev python-pip git
+    > apt-get update
 
 2. Install the following packages:
 ::
-    > apt-get install postgresql postgresql-contrib python-dev python-pip git
+    > apt-get install mysql-server libmysqlclient-dev python-dev python-pip git
 
 3. During the mysql-server install it will ask you to enter a password for the
 root user, for this example we'll use ``abc123``
