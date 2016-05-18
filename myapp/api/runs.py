@@ -8,6 +8,11 @@ class Runs(object):
         self.client = client
 
     def on_get(self, req, resp):
+        if req.params.get("status") and req.params.get("status") not in [
+                "all", "passed", "failed"]:
+            raise falcon.HTTPBadRequest(
+                description="Status must be either all, passed, or failed",
+                title=falcon.HTTP_400)
         resp.data = self.client.get_runs(**req.params).to_json()
         resp.content_type = 'application/json'
         resp.status = falcon.HTTP_200

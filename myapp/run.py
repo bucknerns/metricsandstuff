@@ -1,9 +1,22 @@
+from ConfigParser import SafeConfigParser
+import sys
+
 import falcon
+
 from api import runs, tests
 from myapp.subunitdb.client import SubunitClient
 
 
-client = SubunitClient("mysql://root:abc123@127.0.0.1/subunit")
+config = SafeConfigParser()
+config.read("{0}/.metricsandstuff/my.cnf".format(sys.prefix))
+connection_string = config.get('database', 'connection_string')
+username = config.get('database', 'username')
+password = config.get('database', 'password')
+url = config.get('database', 'url')
+database = config.get('database', 'database')
+
+client = SubunitClient("{0}://{1}:{2}@{3}/{4}".format(
+    connection_string, username, password, url, database))
 calls = [runs.TestsByRunID, tests.Tests, tests.Test, runs.Runs, runs.Run]
 
 

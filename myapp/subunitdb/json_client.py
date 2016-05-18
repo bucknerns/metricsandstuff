@@ -16,7 +16,7 @@ class SubunitClient(object):
 
     def get_runs(
             self, run_after=None, run_before=None,
-            limit=100, page=1, **metadata):
+            limit=100, page=1, status='all', **metadata):
         if type(limit) != int:
             limit = int(limit)
         if type(page) != int:
@@ -33,6 +33,11 @@ class SubunitClient(object):
 
         if run_before is not None:
             main_query = main_query.filter(self.runs.run_at < run_before)
+
+        if status == 'passed':
+            main_query = main_query.filter(self.runs.fails == 0)
+        elif status == 'failed':
+            main_query = main_query.filter(self.runs.fails > 0)
 
         main_query = main_query.limit(limit).offset(limit*(page-1))
         return models.ListModel.from_sqlalchemy(

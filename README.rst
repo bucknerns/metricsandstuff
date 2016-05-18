@@ -6,7 +6,9 @@ Setting up a Dev Environment
 ============================
 
 This is assuming that you are creating a general1-8 server on RAX Public Cloud
-running Ubuntu 14.04 (Trusty Tahr).
+running Ubuntu 14.04 (Trusty Tahr). Please note that when creating the config
+file, it is loaded from the sys.prefix location (which will differ from ~ when
+running inside of a virtual environment).
 
 MySQL
 -----
@@ -48,6 +50,17 @@ root user, for this example we'll use ``abc123``
 9. Install metricsandstuff
 ::
     > pip install metricsandstuff/
+
+10. Create metricsandstuff database config
+::
+    > cat > ~/.metricsandstuff/my.cnf <<EOL
+    [database]
+    username=root
+    password=abc123
+    url=127.0.0.1
+    database=subunit
+    connection_string=mysql
+    EOL
 
 10. Update the database schema via subunit2sql-db-manage
 ::
@@ -104,11 +117,16 @@ privileges on the database
 ::
     > pip install psycopg2
 
-7. Change the connection string in metricsandstuff
+7. Create metricsandstuff database config
 ::
-    > vim metricsandstuff
-    :%s/mysql/postgresql+psycopg2/g
-    :wq
+    > cat > ~/.metricsandstuff/my.cnf <<EOL
+    [database]
+    username=root
+    password=abc123
+    url=127.0.0.1
+    database=subunit
+    connection_string=postgresql+psycopg2
+    EOL
 
 8. Install subunit2sql
 ::
