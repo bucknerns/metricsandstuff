@@ -8,7 +8,8 @@ class SubunitClient(object):
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     def __init__(self, connection_string):
-        self.engine = create_engine(connection_string)
+        self.engine = create_engine(
+            connection_string, pool_size=100, max_overflow=0)
         self.attachments = models.Attachments
         self.runs = models.Run
         self.test_runs = models.TestRun
