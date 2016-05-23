@@ -190,6 +190,42 @@ class RunModel(BaseModel):
             metadata=metadata)
 
 
+class TestsModel(BaseModel):
+    def __init__(
+        self, id=None, test_id=None, run_count=None, success=None, failure=None,
+            run_time=None, metadata=None):
+        super(TestsModel, self).__init__(locals())
+
+    def to_dict(self):
+        dic = {
+            "id": self.id,
+            "test_id": self.test_id,
+            "run_count": self.run_count,
+            "success": self.success,
+            "failure": self.failure,
+            "run_time": self.run_time}
+        if self.metadata is not None:
+            dic["metadata"] = self.metadata
+        return dic
+
+    @classmethod
+    def from_sqlalchemy(cls, obj):
+        if obj.test_meta:
+            metadata = {k: v for k, v in
+                        [(o.key, o.value) for o in obj.test_meta]}
+        else:
+            metadata = None
+
+        return cls(
+            id=obj.id,
+            test_id=obj.test_id,
+            run_count=obj.run_count,
+            success=obj.success,
+            failure=obj.failure,
+            run_time=obj.run_time,
+            metadata=metadata)
+
+
 class TestModel(BaseModel):
     def __init__(
         self, id=None, test_id=None, run_id=None, status=None, start_time=None,

@@ -62,23 +62,15 @@ class SubunitClient(object):
             page = int(page)
 
         session = Session(self.engine)
-        main_query = session.query(self.test_runs)
+        main_query = session.query(self.tests)
         if metadata:
             for k, v in metadata.items():
                 main_query = main_query.filter(
                     self.test_runs.my_metadata[k] == v)
 
-        if run_after is not None:
-            main_query = main_query.filter(
-                self.test_runs.start_time > run_after)
-
-        if run_before is not None:
-            main_query = main_query.filter(
-                self.test_runs.start_time < run_before)
-
         main_query = main_query.limit(limit).offset(limit*(page-1))
         return models.ListModel.from_sqlalchemy(
-            main_query.all(), models.TestModel)
+            main_query.all(), models.TestsModel)
 
     def get_test_by_id(self, id_):
         session = Session(self.engine)
