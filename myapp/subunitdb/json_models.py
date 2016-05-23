@@ -110,7 +110,7 @@ class ListModel(list):
 class RunModel(BaseModel):
     def __init__(
         self, id=None, skips=None, fails=None, passes=None, run_at=None,
-            metadata=None):
+            run_time=None, metadata=None):
         super(RunModel, self).__init__(locals())
 
     def to_dict(self):
@@ -124,7 +124,8 @@ class RunModel(BaseModel):
             "skips": self.skips,
             "fails": self.fails,
             "passes": self.passes,
-            "run_at": time}
+            "run_at": time,
+            "run_time": self.run_time}
         if self.metadata is not None:
             dic["metadata"] = self.metadata
         return dic
@@ -137,6 +138,7 @@ class RunModel(BaseModel):
             fails=obj.fails,
             passes=obj.passes,
             run_at=obj.run_at,
+            run_time=obj.run_time,
             metadata=obj.my_metadata)
 
 
