@@ -26,7 +26,8 @@ setup(
     description='Metrics api',
     long_description='{0}'.format(open('README.rst').read()),
     author='Nathan Buckner',
-    install_requires=["falcon", "mysql-python", "sqlalchemy"],
+    install_requires=[
+        "falcon", "redis", "pytz", "python-dateutil", "requests"],
     packages=find_packages(exclude=('tests*', 'docs')),
     classifiers=(
         'Development Status :: 4 - Beta',

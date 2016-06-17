@@ -1,32 +1,56 @@
-from ConfigParser import SafeConfigParser
-import sys
-
 import falcon
 
-from api import runs, tests
-from myapp.subunitdb.client import SubunitClient
+from myapp import api
+from myapp.api.base import BaseAPI
+from myapp.auth.client import AuthClient
+from myapp.files.client import FilesClient
+from myapp.redis.client import RedisClient
+from myapp.common.utils import get_routes, get_config_value
+
+# monkeypatch to force application json on raised exceptions
+falcon.Request.client_prefers = lambda self, media_types: "application/json"
+
+identity_url = get_config_value("auth", "url")
+files_username = get_config_value("auth", "username")
+files_apikey = get_config_value("auth", "apikey")
+files_url = get_config_value("files", "url")
+temp_url_key = get_config_value("files", "temp_url_key")
+index_prefix = get_config_value("files", "prefix")
+elasticsearch_url = get_config_value("elasticsearch", "url")
+elasticsearch_url = get_config_value("elasticsearch", "index")
+
+routes = get_routes(api)
+redis_client = RedisClient()
+files_auth = AuthClient(identity_url, files_username, files_apikey)
+files_client = FilesClient(
+    url=files_url,
+    auth_client=files_auth,
+    temp_url_key=temp_url_key,
+    container_prefix=index_prefix)
 
 
-config = SafeConfigParser()
-config.read("{0}/.metricsandstuff/my.cnf".format(sys.prefix))
-connection_string = config.get('database', 'connection_string')
-username = config.get('database', 'username')
-password = config.get('database', 'password')
-url = config.get('database', 'url')
-database = config.get('database', 'database')
+class RequireJSON(object):
 
-client = SubunitClient("{0}://{1}:{2}@{3}/{4}".format(
-    connection_string, username, password, url, database))
-calls = [runs.TestsByRunID, tests.Tests, tests.Test, runs.Runs, runs.Run]
+    def process_request(self, req, resp):
+
+        if not req.client_accepts_json:
+            raise falcon.HTTPNotAcceptable(
+                'This API only supports responses encoded as JSON.',
+                href='http://docs.examples.com/api/json')
+
+        if req.method in ('POST', 'PUT'):
+            if 'application/json' not in req.content_type:
+                raise falcon.HTTPUnsupportedMediaType(
+                    'This API only supports requests encoded as JSON.',
+                    href='http://docs.examples.com/api/json')
 
 
 def handle_404(req, resp):
-    raise falcon.HTTPNotFound(
-        description="The requested resource does not exist",
-        code=falcon.HTTP_404)
+    BaseAPI.not_found()
 
-app = falcon.API()
-for class_ in calls:
-    app.add_route(class_.route, class_(client))
+
+app = falcon.API(media_type="application/json", middleware=[RequireJSON()])
+for class_ in routes:
+    app.add_route(class_.route, class_(redis_client, files_client))
 
 app.add_sink(handle_404, '')
