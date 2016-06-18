@@ -7,6 +7,7 @@ class Tests(BaseAPI):
 
     def on_get(self, req, resp):
         """
+        @apiUse Version
         @api {get} /tests Get Tests
         @apiName GetTests
         @apiGroup Tests
@@ -59,6 +60,7 @@ class Tests(BaseAPI):
 
     def on_post(self, req, resp):
         """
+        @apiUse Version
         @api {get} /tests Cretae Test
         @apiName CreateTest
         @apiGroup Tests
@@ -129,6 +131,7 @@ class Test(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
+        @apiUse Version
         @api {get} /tests/{test_id} Get Test by ID
         @apiName GetTest
         @apiGroup Tests
@@ -170,6 +173,7 @@ class TestStats(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
+        @apiUse Version
         @api {get} /tests/{test_id}/stats Get stats by test ID
         @apiName GetTestStatsByID
         @apiGroup Stats
@@ -206,6 +210,7 @@ class TestAttachments(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
+        @apiUse Version
         @api {get} /tests/{test_id}/attachments Get Attachments for test
         @apiName GetTestAttachments
         @apiGroup Attachments

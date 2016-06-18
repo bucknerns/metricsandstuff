@@ -6,6 +6,7 @@ class TestStats(BaseAPI):
 
     def on_get(self, req, resp, test_name):
         """
+        @apiUse Version
         @api {get} /status/{test_name} Get stats by test name
         @apiName GetStatsByName
         @apiGroup Stats

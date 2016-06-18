@@ -6,6 +6,10 @@ from myapp.common.constants import (
 
 
 class BaseAPI(object):
+    """
+    @apiDefine Version
+    @apiVersion 0.0.0
+    """
     route = None
 
     def __init__(self, redis_client, files_client):

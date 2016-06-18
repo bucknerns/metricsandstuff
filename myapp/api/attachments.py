@@ -12,6 +12,7 @@ class Attachments(BaseAPI):
 
     def on_get(self, req, resp):
         """
+        @apiUse Version
         @api {get} /attachments Get Attachments
         @apiName GetAttachments
         @apiGroup Attachments
@@ -47,6 +48,7 @@ class Attachments(BaseAPI):
 
     def on_post(self, req, resp):
         """
+        @apiUse Version
         @api {post} /attachments Create Attachment
         @apiName CreateAttachments
         @apiGroup Attachments
@@ -111,6 +113,7 @@ class Attachments(BaseAPI):
 
     def on_put(self, req, resp):
         """
+        @apiUse Version
         @api {put} /attachments Update Attachment
         @apiName UpdateAttachments
         @apiGroup Attachments
@@ -186,6 +189,7 @@ class AttachmentFilters(BaseAPI):
 
     def on_get(self, req, resp):
         """
+        @apiUse Version
         @api {get} /attachments/filters Get Attachment Filters
         @apiName GetAttachmentFilters
         @apiGroup Attachment Filters
@@ -208,6 +212,7 @@ class AttachmentFilters(BaseAPI):
 
     def on_post(self, req, resp):
         """
+        @apiUse Version
         @api {post} /attachments/filters Create Attachment Filter
         @apiName CreateAttachmentFilters
         @apiGroup Attachment Filters
@@ -250,6 +255,7 @@ class AttachmentFilters(BaseAPI):
 
     def on_put(self, req, resp):
         """
+        @apiUse Version
         @api {put} /attachments/filters Update Attachment Filter
         @apiName UpdateAttachmentFilters
         @apiGroup Attachment Filters
@@ -295,6 +301,7 @@ class GetAttachmentByID(BaseAPI):
 
     def on_get(self, req, resp, attachment_id):
         """
+        @apiUse Version
         @api {get} /attachments/{attachment_id} Get Attachment by ID
         @apiName GetAttachment
         @apiGroup Attachments
@@ -327,6 +334,7 @@ class GetAttachment(BaseAPI):
 
     def on_get(self, req, resp, attachment_id):
         """
+        @apiUse Version
         @api {get} /attachments/{attachment_id}/content Get Attachment Content by ID
         @apiName GetAttachmentContent
         @apiGroup Attachments
@@ -352,6 +360,7 @@ class GetFilter(BaseAPI):
 
     def on_get(self, req, resp, name):
         """
+        @apiUse Version
         @api {get} /attachments/filters/{name} Get Attachment Filter by name
         @apiName GetAttachmentFilter
         @apiGroup Attachment Filters
@@ -379,6 +388,7 @@ class FilterAttachment(BaseAPI):
 
     def on_post(self, req, resp, attachment_id):
         """
+        @apiUse Version
         @api {post} /attachments/{attachment_id}/filter Filter Attachment
         @apiName FilterAttachment
         @apiGroup Attachment Filters

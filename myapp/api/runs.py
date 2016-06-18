@@ -7,6 +7,7 @@ class Runs(BaseAPI):
 
     def on_get(self, req, resp):
         """
+        @apiUse Version
         @api {get} /runs Get Runs
         @apiName GetRuns
         @apiGroup Runs
@@ -66,6 +67,7 @@ class Runs(BaseAPI):
 
     def on_post(self, req, resp):
         """
+        @apiUse Version
         @api {post} /runs Create Run
         @apiName CreateRun
         @apiGroup Runs
@@ -136,6 +138,7 @@ class Run(BaseAPI):
 
     def on_get(self, req, resp, run_id):
         """
+        @apiUse Version
         @api {get} /runs/{run_id} Get Run by ID
         @apiName GetRun
         @apiGroup Runs
@@ -179,9 +182,8 @@ class TestsByRunID(BaseAPI):
     route = "/runs/{run_id}/tests"
 
     def on_get(self, req, resp, run_id):
-
-
         """
+        @apiUse Version
         @api {get} /runs/{run_id}/tests Get Tests by run ID
         @apiName GetRunTests
         @apiGroup Tests
@@ -238,6 +240,7 @@ class RunAttachments(BaseAPI):
 
     def on_get(self, req, resp, run_id):
         """
+        @apiUse Version
         @api {get} /runs/{run_id}/attachments Get Attachments for run
         @apiName GetRunAttachments
         @apiGroup Attachments
