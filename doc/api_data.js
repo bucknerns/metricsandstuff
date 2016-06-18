@@ -87,7 +87,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/attachments/filters",
+    "url": "/attachments/{attachment_id}/filter",
     "title": "Filter Attachment",
     "name": "FilterAttachment",
     "group": "Attachment_Filters",
@@ -196,7 +196,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/attachments/filters",
+    "url": "/attachments/filters/{name}",
     "title": "Get Attachment Filter by name",
     "name": "GetAttachmentFilter",
     "group": "Attachment_Filters",
@@ -660,7 +660,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/attachments/{attachment_id}/raw",
+    "url": "/attachments/{attachment_id}/content",
     "title": "Get Attachment Content by ID",
     "name": "GetAttachmentContent",
     "group": "Attachments",
@@ -833,6 +833,92 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Attachments"
+  },
+  {
+    "type": "get",
+    "url": "/runs/{run_id}/attachments",
+    "title": "Get Attachments for run",
+    "name": "GetRunAttachments",
+    "group": "Attachments",
+    "description": "<p>Get attachments by run ID</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "URL Variable": [
+          {
+            "group": "URL Variable",
+            "type": "Integer",
+            "optional": false,
+            "field": "run_id",
+            "description": "<p>Run ID of run</p>"
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "None",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "attachment_id",
+            "description": "<p>Attachment_id of attachment</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of attachment</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "location",
+            "description": "<p>Location of attachment</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"attachment_id\": \"1\",\n        \"name\": \"cafe.master.log\",\n        \"location\": \"https://storage101.dfw1.clouddrive.com/v1/...\"\n    },\n    {\n        \"attachment_id\": \"2\",\n        \"name\": \"cafe.master.log\",\n        \"location\": \"https://storage101.dfw1.clouddrive.com/v1/...\"\n    }\n]",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/runs.py",
     "groupTitle": "Attachments"
   },
   {
@@ -1291,211 +1377,6 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/runs/{run_id}/attachments",
-    "title": "Get Attachments for run",
-    "name": "GetRunAttachments",
-    "group": "Runs",
-    "description": "<p>Get attachments by run ID</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "URL Variable": [
-          {
-            "group": "URL Variable",
-            "type": "Integer",
-            "optional": false,
-            "field": "run_id",
-            "description": "<p>Run ID of run</p>"
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "None",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "attachment_id",
-            "description": "<p>Attachment_id of attachment</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of attachment</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "location",
-            "description": "<p>Location of attachment</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"attachment_id\": \"1\",\n        \"name\": \"cafe.master.log\",\n        \"location\": \"https://storage101.dfw1.clouddrive.com/v1/...\"\n    },\n    {\n        \"attachment_id\": \"2\",\n        \"name\": \"cafe.master.log\",\n        \"location\": \"https://storage101.dfw1.clouddrive.com/v1/...\"\n    }\n]",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/runs.py",
-    "groupTitle": "Runs"
-  },
-  {
-    "type": "get",
-    "url": "/runs/{run_id}/tests",
-    "title": "Get Tests by run ID",
-    "name": "GetRunTests",
-    "group": "Runs",
-    "description": "<p>Get all tests for a given run ID</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "URL Variable": [
-          {
-            "group": "URL Variable",
-            "type": "Integer",
-            "optional": false,
-            "field": "run_id",
-            "description": "<p>Run ID of run</p>"
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "None",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "allowedValues": [
-              "\"passed\"",
-              "\"failed\"",
-              "\"skipped\""
-            ],
-            "optional": false,
-            "field": "status",
-            "description": "<p>Status of test</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "Integer",
-            "optional": false,
-            "field": "run_id",
-            "description": "<p>Run ID, same at URL run_id</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "start_time",
-            "description": "<p>DateTimeStamp or test start time</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "stop_time",
-            "description": "<p>DateTimeStamp or test stop time</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "test_name",
-            "description": "<p>Name of test</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "Integer",
-            "optional": false,
-            "field": "test_id",
-            "description": "<p>Test ID</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "Dictionary",
-            "optional": false,
-            "field": "metadata",
-            "description": "<p>Dictionary containing metadata key value pairs</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"status\": \"passed\",\n        \"run_id\": \"3\",\n        \"start_time\": \"2014-03-24T17:18:35+00:00\",\n        \"stop_time\": \"2014-03-24T17:18:35.060518+00:00\",\n        \"test_name\": \"somerepo.ClusterActionTest.test_do_detach_policy_missing_policy\",\n        \"test_id\": \"3517\",\n        \"metadata\": {\n            \"tags\": \"worker-5\"\n        }\n    },\n    {\n        \"status\": \"passed\",\n        \"run_id\": \"3\",\n        \"start_time\": \"2014-03-23T22:58:31+00:00\",\n        \"stop_time\": \"2014-03-23T22:58:31.052204+00:00\",\n        \"test_name\": \"somerepo.PolicyControllerTest.test_policy_update_normal\",\n        \"test_id\": \"3518\",\n        \"metadata\": {\n            \"tags\": \"worker-7\"\n        }\n    }\n]",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/runs.py",
-    "groupTitle": "Runs"
-  },
-  {
-    "type": "get",
     "url": "/runs",
     "title": "Get Runs",
     "name": "GetRuns",
@@ -1737,7 +1618,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/tests/{test_id}/stats",
-    "title": "Get Test by test ID",
+    "title": "Get stats by test ID",
     "name": "GetTestStatsByID",
     "group": "Stats",
     "description": "<p>Get test stats by ID</p>",
@@ -1950,6 +1831,125 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./myapp/api/tests.py",
+    "groupTitle": "Tests"
+  },
+  {
+    "type": "get",
+    "url": "/runs/{run_id}/tests",
+    "title": "Get Tests by run ID",
+    "name": "GetRunTests",
+    "group": "Tests",
+    "description": "<p>Get all tests for a given run ID</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "URL Variable": [
+          {
+            "group": "URL Variable",
+            "type": "Integer",
+            "optional": false,
+            "field": "run_id",
+            "description": "<p>Run ID of run</p>"
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "None",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "allowedValues": [
+              "\"passed\"",
+              "\"failed\"",
+              "\"skipped\""
+            ],
+            "optional": false,
+            "field": "status",
+            "description": "<p>Status of test</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "Integer",
+            "optional": false,
+            "field": "run_id",
+            "description": "<p>Run ID, same at URL run_id</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "start_time",
+            "description": "<p>DateTimeStamp or test start time</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "stop_time",
+            "description": "<p>DateTimeStamp or test stop time</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "test_name",
+            "description": "<p>Name of test</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "Integer",
+            "optional": false,
+            "field": "test_id",
+            "description": "<p>Test ID</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "Dictionary",
+            "optional": false,
+            "field": "metadata",
+            "description": "<p>Dictionary containing metadata key value pairs</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"status\": \"passed\",\n        \"run_id\": \"3\",\n        \"start_time\": \"2014-03-24T17:18:35+00:00\",\n        \"stop_time\": \"2014-03-24T17:18:35.060518+00:00\",\n        \"test_name\": \"somerepo.ClusterActionTest.test_do_detach_policy_missing_policy\",\n        \"test_id\": \"3517\",\n        \"metadata\": {\n            \"tags\": \"worker-5\"\n        }\n    },\n    {\n        \"status\": \"passed\",\n        \"run_id\": \"3\",\n        \"start_time\": \"2014-03-23T22:58:31+00:00\",\n        \"stop_time\": \"2014-03-23T22:58:31.052204+00:00\",\n        \"test_name\": \"somerepo.PolicyControllerTest.test_policy_update_normal\",\n        \"test_id\": \"3518\",\n        \"metadata\": {\n            \"tags\": \"worker-7\"\n        }\n    }\n]",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/runs.py",
     "groupTitle": "Tests"
   },
   {
