@@ -1,8 +1,5 @@
-import six
-
 from myapp.api.base import BaseAPI
 from myapp.models.test import TestModel
-from myapp.common.constants import TEST_STATUSES
 
 
 class Tests(BaseAPI):

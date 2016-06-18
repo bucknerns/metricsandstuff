@@ -1,5 +1,3 @@
-import six
-
 from myapp.api.base import BaseAPI
 from myapp.models.run import RunModel
 

@@ -178,7 +178,7 @@ class RedisClient(object):
 
     def get_tests_by_ids(self, test_ids):
         if not test_ids:
-            return []
+            return ListModel()
         pipe = self.r.pipeline()
         for test_id in test_ids:
             pipe.hgetall(Keys.TEST.format(test_id))
