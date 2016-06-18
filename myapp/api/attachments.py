@@ -327,7 +327,7 @@ class GetAttachment(BaseAPI):
 
     def on_get(self, req, resp, attachment_id):
         """
-        @api {get} /attachments/{attachment_id}/raw Get Attachment Content by ID
+        @api {get} /attachments/{attachment_id}/content Get Attachment Content by ID
         @apiName GetAttachmentContent
         @apiGroup Attachments
         @apiDescription Get an attachment's content by attachment ID
@@ -352,7 +352,7 @@ class GetFilter(BaseAPI):
 
     def on_get(self, req, resp, name):
         """
-        @api {get} /attachments/filters Get Attachment Filter by name
+        @api {get} /attachments/filters/{name} Get Attachment Filter by name
         @apiName GetAttachmentFilter
         @apiGroup Attachment Filters
         @apiDescription Get an Attachment Filter by name
@@ -379,7 +379,7 @@ class FilterAttachment(BaseAPI):
 
     def on_post(self, req, resp, attachment_id):
         """
-        @api {post} /attachments/filters Filter Attachment
+        @api {post} /attachments/{attachment_id}/filter Filter Attachment
         @apiName FilterAttachment
         @apiGroup Attachment Filters
         @apiDescription Get list of matches using one or more filters

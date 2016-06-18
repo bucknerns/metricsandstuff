@@ -170,7 +170,7 @@ class TestStats(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
-        @api {get} /tests/{test_id}/stats Get Test by test ID
+        @api {get} /tests/{test_id}/stats Get stats by test ID
         @apiName GetTestStatsByID
         @apiGroup Stats
         @apiDescription Get test stats by ID

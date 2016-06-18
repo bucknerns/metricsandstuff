@@ -184,7 +184,7 @@ class TestsByRunID(BaseAPI):
         """
         @api {get} /runs/{run_id}/tests Get Tests by run ID
         @apiName GetRunTests
-        @apiGroup Runs
+        @apiGroup Tests
         @apiDescription Get all tests for a given run ID
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (URL Variable) {Integer} run_id Run ID of run
@@ -240,7 +240,7 @@ class RunAttachments(BaseAPI):
         """
         @api {get} /runs/{run_id}/attachments Get Attachments for run
         @apiName GetRunAttachments
-        @apiGroup Runs
+        @apiGroup Attachments
         @apiDescription Get attachments by run ID
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (URL Variable) {Integer} run_id Run ID of run
