@@ -16,8 +16,6 @@ files_apikey = get_config_value("auth", "apikey")
 files_url = get_config_value("files", "url")
 temp_url_key = get_config_value("files", "temp_url_key")
 index_prefix = get_config_value("files", "prefix")
-elasticsearch_url = get_config_value("elasticsearch", "url")
-elasticsearch_url = get_config_value("elasticsearch", "index")
 
 routes = get_routes(api)
 redis_client = RedisClient()
