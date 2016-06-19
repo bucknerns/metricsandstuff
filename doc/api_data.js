@@ -1717,7 +1717,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/tests",
-    "title": "Cretae Test",
+    "title": "Create Test",
     "name": "CreateTest",
     "group": "Tests",
     "description": "<p>Create a test and add to a run</p>",

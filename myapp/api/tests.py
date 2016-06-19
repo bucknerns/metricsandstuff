@@ -61,7 +61,7 @@ class Tests(BaseAPI):
     def on_post(self, req, resp):
         """
         @apiUse Version
-        @api {get} /tests Cretae Test
+        @api {get} /tests Create Test
         @apiName CreateTest
         @apiGroup Tests
         @apiDescription Create a test and add to a run
