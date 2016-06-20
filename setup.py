@@ -27,7 +27,7 @@ setup(
     long_description='{0}'.format(open('README.rst').read()),
     author='Nathan Buckner',
     install_requires=[
-        "falcon", "redis", "pytz", "python-dateutil", "requests"],
+        "falcon", "redis", "pytz", "python-dateutil", "requests", "multiprocess", "subunit2sql"],
     packages=find_packages(exclude=('tests*', 'docs')),
     classifiers=(
         'Development Status :: 4 - Beta',
