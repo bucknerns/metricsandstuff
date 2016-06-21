@@ -11,12 +11,12 @@ class TestModel(BaseModel):
 
     def to_dict(self):
         dic = {
-            "test_id": str(self.test_id),
-            "run_id": str(self.run_id),
-            "status": str(self.status),
-            "start_time": parse_date_string(self.start_time),
-            "stop_time": parse_date_string(self.stop_time),
-            "test_name": str(self.test_name)}
+            "test_id": self.test_id,
+            "run_id": self.run_id,
+            "status": self.status,
+            "start_time": self.start_time,
+            "stop_time": self.stop_time,
+            "test_name": self.test_name}
         dic["metadata"] = self.metadata or {}
         return dic
 
@@ -38,12 +38,13 @@ class TestModel(BaseModel):
             test_name=data.get(Test.NAME))
 
     @classmethod
-    def from_dict(cls, data):
+    def from_user_dict(cls, data):
         return cls(
-            metadata=data.get("metadata", {}),
-            run_id=data.get("run_id"),
-            start_time=data.get("start_time"),
-            status=data.get("status"),
-            stop_time=data.get("stop_time"),
-            test_id=data.get("test_id"),
-            test_name=data.get("test_name"))
+            metadata=cls._api.handle_dict(data.get("metadata"), "metadata"),
+            run_id=cls._api.handle_run_id(data.get("run_id")),
+            start_time=cls._api.handle_date(
+                data.get("start_time"), "start_time"),
+            status=cls._api.handle_test_status(data.get("status")),
+            stop_time=cls._api.handle_date(data.get("stop_time"), "stop_time"),
+            test_name=cls._api.handle_string(
+                data.get("test_name"), "test_name"))

@@ -1,15 +1,15 @@
+import re
+from base64 import b64decode
+
 import falcon
 import six
 
 from myapp.common.constants import (
     RUN_STATUSES, TEST_STATUSES, DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT)
+from myapp.common.utils import parse_date_string
 
 
 class BaseAPI(object):
-    """
-    @apiDefine Version
-    @apiVersion 0.0.0
-    """
     route = None
 
     def __init__(self, redis_client, files_client):
@@ -30,13 +30,21 @@ class BaseAPI(object):
         raise falcon.HTTPMovedPermanently(location)
 
     @classmethod
-    def handle_run_status(cls, status):
+    def handle_run_status(cls, status, required=True):
+        if required:
+            cls.handle_required(status, "status")
+        elif status is None:
+            return None
         if status is not None and status not in RUN_STATUSES:
             cls.bad_request("'status' not in {0}.".format(RUN_STATUSES))
         return status
 
     @classmethod
-    def handle_test_status(cls, status):
+    def handle_test_status(cls, status, required=True):
+        if required:
+            cls.handle_required(status, "status")
+        elif status is None:
+            return None
         if status and status not in TEST_STATUSES:
             cls.bad_request("'status' not in {0}.".format(TEST_STATUSES))
         return status
@@ -55,12 +63,10 @@ class BaseAPI(object):
 
     @classmethod
     def handle_int(cls, number, var_name, min_=None, max_=None, required=True):
-        if number is None:
-            if required:
-                cls.bad_request("'{0}' is required.".format(var_name))
-            else:
-                return number
-
+        if required:
+            cls.handle_required(number, var_name)
+        elif number is None:
+            return None
         try:
             number = int(number)
         except ValueError:
@@ -80,61 +86,58 @@ class BaseAPI(object):
 
     @classmethod
     def handle_string(cls, string, var_name, required=True):
-        if string is None:
-            if required:
-                cls.bad_request("'{0}' is required.".format(var_name))
-            else:
-                return string
+        if required:
+            cls.handle_required(string, var_name)
+        elif string is None:
+            return None
         if not isinstance(string, six.string_types):
             cls.bad_request("'{0}' must be a string".format(var_name))
+        return string
 
     def handle_test_id(self, test_id, required=True):
-        if test_id is None:
-            if required:
-                self.bad_request("'test_id' is required.")
-            else:
-                return test_id
+        if required:
+            self.handle_required(test_id, "test_id")
+        elif test_id is None:
+            return None
         if not self.redis.is_valid_test(test_id):
             self.bad_request("Invalid 'test_id'.")
+        return test_id
 
     def handle_attachment_id(self, attachment_id, required=True):
-        if attachment_id is None:
-            if required:
-                self.bad_request("'attachment_id' is required.")
-            else:
-                return attachment_id
+        if required:
+            self.handle_required(attachment_id, "attachment_id")
+        elif attachment_id is None:
+            return None
         if not self.redis.is_valid_attachment(attachment_id):
             self.bad_request("Invalid 'attachment_id'.")
+        return attachment_id
 
     def handle_run_id(self, run_id, required=True):
-        if run_id is None:
-            if required:
-                self.bad_request("'run_id' is required.")
-            else:
-                return run_id
+        if required:
+            self.handle_required(run_id, "run_id")
+        elif run_id is None:
+            return None
         if not self.redis.is_valid_run(run_id):
             self.bad_request("Invalid 'run_id'.")
+        return run_id
 
     @classmethod
     def handle_float(cls, number, var_name, required=True):
-        if number is None:
-            if required:
-                cls.bad_request("'{0}' is required.".format(var_name))
-            else:
-                return number
+        if required:
+            cls.handle_required(number, var_name)
+        elif number is None:
+            return None
         try:
-            number = float(number)
+            return float(number)
         except ValueError:
             cls.bad_request("'{0}' must be a float.".format(var_name))
 
-
     @classmethod
-    def handle_dict(cls, dic, var_name, required=True, nested=False):
-        if dic is None:
-            if required:
-                cls.bad_request("'{0}' is required.".format(var_name))
-            else:
-                return dic
+    def handle_dict(cls, dic, var_name, required=False, nested=False):
+        if required:
+            cls.handle_required(dic, var_name)
+        elif dic is None:
+            return None
         if not isinstance(dic, dict):
             cls.bad_request("'{0}' must be a dictionary.".format(var_name))
 
@@ -144,3 +147,48 @@ class BaseAPI(object):
                     cls.bad_request(
                         "Api does not support nested dictionary:'{0}'.".format(
                             var_name))
+        return dic
+
+    @classmethod
+    def handle_date(cls, date, var_name, required=True):
+        if required:
+            cls.handle_required(date, var_name)
+        elif date is None:
+            return None
+        cls.handle_string(date, var_name)
+        try:
+            return parse_date_string(date)
+        except:
+            cls._api.bad_request(
+                "Date for var '{0}' is invalid.".format(var_name))
+
+    @classmethod
+    def handle_required(cls, var, var_name):
+        if var is None:
+            cls.bad_request("'{0}' is required.".format(var_name))
+        return var
+
+    @classmethod
+    def handle_base64(cls, var, var_name, required=False):
+        try:
+            return b64decode(cls._api.handle_string(var, var_name, required))
+        except:
+            cls._API.bad_request("Invalid Base64 in data")
+
+    @classmethod
+    def handle_regex(self, regex, varname, required=True):
+        self.handle_string(regex, varname)
+        try:
+            re.compile(regex)
+            return regex
+        except re.error:
+            self.bad_request("Invalid regex '{0}'".format(varname))
+
+    @classmethod
+    def handle_filter(self, name, regex, exists):
+        name = self.handle_string(name, "name")
+        if exists != self.redis.has_filter(name):
+            if exists:
+                self.bad_request("Filter does not exist update failed")
+            self.bad_request("Filter already exists create failed")
+        return name, self.handle_regex(regex, "regex")

@@ -1,7 +1,10 @@
 import json
+from myapp.api.base import BaseAPI
 
 
 class BaseModel(object):
+    _api = BaseAPI
+
     def __init__(self, kwargs):
         for k, v in kwargs.items():
             if k != "self":
@@ -11,8 +14,13 @@ class BaseModel(object):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, data):
-        return cls.from_dict(json.loads(data))
+    def from_user(cls, data):
+        try:
+            dic = json.loads(data)
+        except:
+            cls._api.bad_request("Invalid Json in body of request.")
+
+        return cls.from_user_dict(dic)
 
 
 class ListModel(list):

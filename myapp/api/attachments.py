@@ -12,7 +12,6 @@ class Attachments(BaseAPI):
 
     def on_get(self, req, resp):
         """
-        @apiUse Version
         @api {get} /attachments Get Attachments
         @apiName GetAttachments
         @apiGroup Attachments
@@ -48,7 +47,6 @@ class Attachments(BaseAPI):
 
     def on_post(self, req, resp):
         """
-        @apiUse Version
         @api {post} /attachments Create Attachment
         @apiName CreateAttachments
         @apiGroup Attachments
@@ -79,41 +77,10 @@ class Attachments(BaseAPI):
             }
 
         """
-        resp.status = falcon.HTTP_200
-        try:
-            model = AttachmentModel.from_json(req.stream.read())
-        except Exception as e:
-            self.bad_request(
-                "Invalid json or base64 encoded data in request: "
-                "{0}".format(e))
-
-        self.handle_string(model.name, "name")
-        self.handle_string(model.data, "data")
-        self.handle_test_id(model.test_id, False)
-        self.handle_run_id(model.run_id, False)
-        attachment_id = self.redis.get_next_attachment()
-        tempurl, response = self.files.create_attachment(
-            attachment_id, model.data, model.name)
-
-        if not response.ok:
-            raise Exception("Failed in creating file")
-
-        resp.data = self.redis.create_attachment(
-            attachment_id, model.name, tempurl).to_json()
-
-        if model.test_id is not None:
-            self.redis.add_attachment_test(
-                attachment_id=attachment_id,
-                test_id=model.test_id)
-
-        if model.run_id is not None:
-            self.redis.add_attachment_run(
-                attachment_id=attachment_id,
-                run_id=model.run_id)
+        self._create_attachment(req, resp, False)
 
     def on_put(self, req, resp):
         """
-        @apiUse Version
         @api {put} /attachments Update Attachment
         @apiName UpdateAttachments
         @apiGroup Attachments
@@ -146,23 +113,23 @@ class Attachments(BaseAPI):
             }
 
         """
+        self._create_attachment(req, resp, True)
+
+    def _create_attachment(self, req, resp, model, update=False):
         resp.status = falcon.HTTP_200
-        try:
-            model = AttachmentModel.from_json(req.stream.read())
-        except:
-            self.bad_request("Invalid json or base64 encoded data in request")
-
-        self.handle_attachment_id(model.attachment_id)
-        self.handle_string(model.name, "name", False)
-        self.handle_test_id(model.test_id, False)
-        self.handle_run_id(model.run_id, False)
-        existing_model = self.redis.get_attachment_by_id(model.attachment_id)
-        model.name = (
-            model.name if model.name is not None else existing_model.name)
-
-        model.data = (
-            model.data if model.data is not None else
-            self.files.get_attachment_by_id(model.attachment_id))
+        model = AttachmentModel.from_user(req.stream.read())
+        if update:
+            self.handle_required(model.attachment_id)
+            existing_model = self.redis.get_attachment_by_id(model.attachment_id)
+            model.name = (
+                model.name if model.name is not None else existing_model.name)
+            model.data = (
+                model.data if model.data is not None else
+                self.files.get_attachment_by_id(model.attachment_id))
+        else:
+            self.handle_required(model.name, "name")
+            self.handle_required(model.data, "data")
+            model.attachment_id = self.redis.get_next_attachment()
 
         tempurl, response = self.files.create_attachment(
             model.attachment_id, model.data, model.name)
@@ -189,10 +156,9 @@ class AttachmentFilters(BaseAPI):
 
     def on_get(self, req, resp):
         """
-        @apiUse Version
-        @api {get} /attachments/filters Get Attachment Filters
+        @api {get} /attachments/filters Get Filters
         @apiName GetAttachmentFilters
-        @apiGroup Attachment Filters
+        @apiGroup Filters
         @apiDescription Get a list of regex filters and names
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (Parameters) None
@@ -212,11 +178,10 @@ class AttachmentFilters(BaseAPI):
 
     def on_post(self, req, resp):
         """
-        @apiUse Version
-        @api {post} /attachments/filters Create Attachment Filter
-        @apiName CreateAttachmentFilters
-        @apiGroup Attachment Filters
-        @apiDescription Create an attachment filter
+        @api {post} /attachments/filters Create Filter
+        @apiName CreateFilter
+        @apiGroup Filters
+        @apiDescription Create a filter
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (Parameters) None
         @apiParam (Request Body) {String} regex Regex filter
@@ -235,31 +200,14 @@ class AttachmentFilters(BaseAPI):
                 "name": "somefilter"
             }
         """
-        resp.status = falcon.HTTP_200
-        try:
-            model = FilterModel.from_json(req.stream.read())
-        except:
-            self.bad_request("Invalid json in request")
-        self.handle_string(model.name, "name")
-        self.handle_string(model.regex, "regex")
-
-        try:
-            re.compile(model.regex)
-        except re.error:
-            self.bad_request("Invalid regex")
-
-        data = self.redis.create_attachment_filter(model.name, model.regex)
-        if data is None:
-            self.bad_request("regex name already exists use update call")
-        resp.data = data.to_json()
+        self._create_filter(req, resp, False)
 
     def on_put(self, req, resp):
         """
-        @apiUse Version
-        @api {put} /attachments/filters Update Attachment Filter
+        @api {put} /attachments/filters Update Filter
         @apiName UpdateAttachmentFilters
-        @apiGroup Attachment Filters
-        @apiDescription Update an attachment filter
+        @apiGroup Filters
+        @apiDescription Update a filter
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (Parameters) None
         @apiParam (Request Body) {String} regex Regex filter
@@ -278,21 +226,12 @@ class AttachmentFilters(BaseAPI):
                 "name": "somefilter"
             }
         """
-        resp.status = falcon.HTTP_200
-        try:
-            model = FilterModel.from_json(req.stream.read())
-        except:
-            self.bad_request("Invalid json in request")
-        self.handle_string(model.name, "name")
-        self.handle_string(model.regex, "regex")
-        try:
-            re.compile(model.regex)
-        except re.error:
-            self.bad_request("invalid regex")
+        self._create_filter(req, resp, True)
 
-        data = self.redis.update_attachment_filter(model.name, model.regex)
-        if data is None:
-            self.bad_request("regex name does not exist use create call")
+    def _create_filter(self, req, resp, update):
+        resp.status = falcon.HTTP_200
+        model = FilterModel.from_user(req.stream.read(), update)
+        data = self.redis.create_filter(model.name, model.regex)
         resp.data = data.to_json()
 
 
@@ -301,7 +240,6 @@ class GetAttachmentByID(BaseAPI):
 
     def on_get(self, req, resp, attachment_id):
         """
-        @apiUse Version
         @api {get} /attachments/{attachment_id} Get Attachment by ID
         @apiName GetAttachment
         @apiGroup Attachments
@@ -334,7 +272,6 @@ class GetAttachment(BaseAPI):
 
     def on_get(self, req, resp, attachment_id):
         """
-        @apiUse Version
         @api {get} /attachments/{attachment_id}/content Get Attachment Content by ID
         @apiName GetAttachmentContent
         @apiGroup Attachments
@@ -360,11 +297,10 @@ class GetFilter(BaseAPI):
 
     def on_get(self, req, resp, name):
         """
-        @apiUse Version
-        @api {get} /attachments/filters/{name} Get Attachment Filter by name
+        @api {get} /attachments/filters/{name} Get Filter by name
         @apiName GetAttachmentFilter
-        @apiGroup Attachment Filters
-        @apiDescription Get an Attachment Filter by name
+        @apiGroup Filters
+        @apiDescription Get an Filter by name
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (URL Variable) {String} name Filter name
         @apiParam (Parameters) None
@@ -388,10 +324,9 @@ class FilterAttachment(BaseAPI):
 
     def on_post(self, req, resp, attachment_id):
         """
-        @apiUse Version
         @api {post} /attachments/{attachment_id}/filter Filter Attachment
         @apiName FilterAttachment
-        @apiGroup Attachment Filters
+        @apiGroup Attachments
         @apiDescription Get list of matches using one or more filters
             Api can return 3 possible match types: group dictionaries, group lists, or string matches
             Also the api call will attempt a literal_eval and a json.loads on the values of groups,

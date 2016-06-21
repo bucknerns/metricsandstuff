@@ -7,7 +7,6 @@ class Runs(BaseAPI):
 
     def on_get(self, req, resp):
         """
-        @apiUse Version
         @api {get} /runs Get Runs
         @apiName GetRuns
         @apiGroup Runs
@@ -15,6 +14,7 @@ class Runs(BaseAPI):
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
         @apiParam (Parameters) {Integer{1-}} [page=1] Page number to start on
         @apiParam (Parameters) {Integer{1-1000}} [limit=100] Limit runs per request
+        @apiParam (Parameters) {String="passed","failed"} status Status of test based on failed test count
         @apiParam (Parameters) {Metadata} metadata All other params read as metadata key=value used to filter runs
         @apiParam (Request Body) None
         @apiParamExample Request Example:
@@ -59,7 +59,7 @@ class Runs(BaseAPI):
                 }
             ]
         """
-        status = self.handle_run_status(req.params.pop("status", None))
+        status = self.handle_run_status(req.params.pop("status", None), False)
         limit = self.handle_limit(req.params.pop("limit", None))
         page = self.handle_page(req.params.pop("page", None))
         resp.data = self.redis.get_runs(
@@ -67,7 +67,6 @@ class Runs(BaseAPI):
 
     def on_post(self, req, resp):
         """
-        @apiUse Version
         @api {post} /runs Create Run
         @apiName CreateRun
         @apiGroup Runs
@@ -113,15 +112,7 @@ class Runs(BaseAPI):
             }
 
         """
-        try:
-            model = RunModel.from_json(req.stream.read())
-        except:
-            self.bad_request("Invalid Json in body of request.")
-
-        self.handle_dict(model.metadata, "metadata", False)
-        self.handle_float(model.run_time, "run_time", required=False)
-        self.handle_string(model.run_at, "run_at", required=False)
-
+        model = RunModel.from_user(req.stream.read())
         run_id = self.redis.create_run(
             run_at=model.run_at,
             run_time=model.run_time,
@@ -138,7 +129,6 @@ class Run(BaseAPI):
 
     def on_get(self, req, resp, run_id):
         """
-        @apiUse Version
         @api {get} /runs/{run_id} Get Run by ID
         @apiName GetRun
         @apiGroup Runs
@@ -172,9 +162,8 @@ class Run(BaseAPI):
                 }
             }
         """
+        self.handle_run_id(run_id)
         run = self.redis.get_run_by_id(run_id)
-        if run is None:
-            self.not_found()
         resp.data = run.to_json()
 
 
@@ -183,12 +172,15 @@ class TestsByRunID(BaseAPI):
 
     def on_get(self, req, resp, run_id):
         """
-        @apiUse Version
         @api {get} /runs/{run_id}/tests Get Tests by run ID
         @apiName GetRunTests
         @apiGroup Tests
         @apiDescription Get all tests for a given run ID
         @apiHeader (Headers) {String} X-Auth-Token Identity Token with api access
+        @apiParam (Parameters) {Integer{1-}} [page=1] Page number to start on
+        @apiParam (Parameters) {Integer{1-1000}} [limit=100] Limit runs per request
+        @apiParam (Parameters) {Integer{1-1000}} [name] Regex name filter
+        @apiParam (Parameters) {String="passed","failed","skipped"} status Status of test
         @apiParam (URL Variable) {Integer} run_id Run ID of run
         @apiParam (Request Body) None
         @apiParamExample Request Example:
@@ -227,11 +219,12 @@ class TestsByRunID(BaseAPI):
                 }
             ]
         """
-        status = self.handle_test_status(req.params.get("status"))
         tests = self.redis.get_tests_by_run_id(
-            run_id, status, req.params.get("name"))
-        if tests is None:
-            self.not_found()
+            run_id=self.handle_run_id(run_id, True),
+            status=self.handle_run_status(req.params.get("status"), False),
+            name=self.handle_regex(req.params.get("name"), False),
+            limit=self.handle_limit(req.params.get("limit")),
+            page=self.handle_page(req.params.get("page")))
         resp.data = tests.to_json()
 
 
@@ -240,7 +233,6 @@ class RunAttachments(BaseAPI):
 
     def on_get(self, req, resp, run_id):
         """
-        @apiUse Version
         @api {get} /runs/{run_id}/attachments Get Attachments for run
         @apiName GetRunAttachments
         @apiGroup Attachments

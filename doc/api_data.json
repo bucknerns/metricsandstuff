@@ -1,452 +1,6 @@
 [
   {
     "type": "post",
-    "url": "/attachments/filters",
-    "title": "Create Attachment Filter",
-    "name": "CreateAttachmentFilters",
-    "group": "Attachment_Filters",
-    "description": "<p>Create an attachment filter</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameters": [
-          {
-            "group": "Parameters",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/attachments.py",
-    "groupTitle": "Attachment_Filters"
-  },
-  {
-    "type": "post",
-    "url": "/attachments/{attachment_id}/filter",
-    "title": "Filter Attachment",
-    "name": "FilterAttachment",
-    "group": "Attachment_Filters",
-    "description": "<p>Get list of matches using one or more filters Api can return 3 possible match types: group dictionaries, group lists, or string matches Also the api call will attempt a literal_eval and a json.loads on the values of groups, if not sucessful it will return the string</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "URL Variable": [
-          {
-            "group": "URL Variable",
-            "type": "Integer",
-            "optional": false,
-            "field": "attachment_id",
-            "description": "<p>Attachment_id of attachment</p>"
-          }
-        ],
-        "Parameters": [
-          {
-            "group": "Parameters",
-            "type": "String",
-            "allowedValues": [
-              "\"groupdict\"",
-              "\"groups\"",
-              "\"match\""
-            ],
-            "optional": false,
-            "field": "type",
-            "description": "<p>Type of matching to perform, overrides auto discovery</p>"
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "type": "List",
-            "optional": false,
-            "field": "List",
-            "description": "<p>of filter names</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "[\n    \"somefilter_with_named_groups\",\n    \"somefilter_with_groups\",\n    \"somefilter_with_no_groups\"\n]",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "Dictionary",
-            "optional": false,
-            "field": "group_dict",
-            "description": "<p>A dictionary based on named groups in regex</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "List",
-            "optional": false,
-            "field": "group_list",
-            "description": "<p>A list of groups based on non named groups in regex</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example: type=None",
-          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"named_group\": \"matched text that doesn't support literal_eval or json.loads\",\n        \"named_group2\": {\n            \"supported\": \"json.loads or literal_eval\"\n        },\n        \"named_group3\": [\n            \"another supported literal_eval/json.loads\"\n        ]\n    },\n    [\n        \"regex2 matched but only has non named groups\",\n        \"group2\",\n        \"group3\"\n    ],\n    \"regex3 match that had no groups returns a string match\"\n]",
-          "type": "json"
-        },
-        {
-          "title": "Response Example: type=groupdict",
-          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"named_group\": \"matched text that doesn't support literal_eval or json.loads\",\n        \"named_group2\": {\n            \"supported\": \"json.loads or literal_eval\"\n        },\n        \"named_group3\": [\n            \"another supported literal_eval/json.loads\",\n            \"woo\"\n        ]\n    },\n    {},\n    {}\n]",
-          "type": "json"
-        },
-        {
-          "title": "Response Example: type=groups",
-          "content": "HTTP/1.1 200 OK\n[\n [\"matched text that doesn't support literal_eval or json.loads\", {\"supported\": \"json.loads or literal_eval\"}, [\"another supported literal_eval/json.loads\"],\n [\"regex2 matched but only has non named groups\", \"group2\", \"group3\"],\n []\n]",
-          "type": "json"
-        },
-        {
-          "title": "Response Example: type=match",
-          "content": "HTTP/1.1 200 OK\n[\n    \"matched text that doesn't support literal_eval or json.loads\\nsupported: json.loads or literal_eval\\n another supported literal_eval/json.loads\",\n    \"regex2 matched but only has non named groups:group2:group3\",\n    \"regex3 match that had no groups returns a string match\"\n]",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/attachments.py",
-    "groupTitle": "Attachment_Filters"
-  },
-  {
-    "type": "get",
-    "url": "/attachments/filters/{name}",
-    "title": "Get Attachment Filter by name",
-    "name": "GetAttachmentFilter",
-    "group": "Attachment_Filters",
-    "description": "<p>Get an Attachment Filter by name</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "URL Variable": [
-          {
-            "group": "URL Variable",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Filter name</p>"
-          }
-        ],
-        "Parameters": [
-          {
-            "group": "Parameters",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "None",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/attachments.py",
-    "groupTitle": "Attachment_Filters"
-  },
-  {
-    "type": "get",
-    "url": "/attachments/filters",
-    "title": "Get Attachment Filters",
-    "name": "GetAttachmentFilters",
-    "group": "Attachment_Filters",
-    "description": "<p>Get a list of regex filters and names</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameters": [
-          {
-            "group": "Parameters",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "None",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n[{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}]",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/attachments.py",
-    "groupTitle": "Attachment_Filters"
-  },
-  {
-    "type": "put",
-    "url": "/attachments/filters",
-    "title": "Update Attachment Filter",
-    "name": "UpdateAttachmentFilters",
-    "group": "Attachment_Filters",
-    "description": "<p>Update an attachment filter</p>",
-    "header": {
-      "fields": {
-        "Headers": [
-          {
-            "group": "Headers",
-            "type": "String",
-            "optional": false,
-            "field": "X-Auth-Token",
-            "description": "<p>Identity Token with api access</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameters": [
-          {
-            "group": "Parameters",
-            "optional": false,
-            "field": "None",
-            "description": ""
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request Example:",
-          "content": "{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Response Body": [
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "regex",
-            "description": "<p>Regex filter</p>"
-          },
-          {
-            "group": "Response Body",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>Name of filter</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Response Example:",
-          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "./myapp/api/attachments.py",
-    "groupTitle": "Attachment_Filters"
-  },
-  {
-    "type": "post",
     "url": "/attachments",
     "title": "Create Attachment",
     "name": "CreateAttachments",
@@ -556,6 +110,115 @@
         {
           "title": "Response Example:",
           "content": "HTTP/1.1 200 OK\n {\n      \"attachment_id\": 1,\n      \"name\": \"my_attachment.log\",\n      \"location\": \"https://storage101.dfw1.clouddrive.com/v1...\"\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Attachments"
+  },
+  {
+    "type": "post",
+    "url": "/attachments/{attachment_id}/filter",
+    "title": "Filter Attachment",
+    "name": "FilterAttachment",
+    "group": "Attachments",
+    "description": "<p>Get list of matches using one or more filters Api can return 3 possible match types: group dictionaries, group lists, or string matches Also the api call will attempt a literal_eval and a json.loads on the values of groups, if not sucessful it will return the string</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "URL Variable": [
+          {
+            "group": "URL Variable",
+            "type": "Integer",
+            "optional": false,
+            "field": "attachment_id",
+            "description": "<p>Attachment_id of attachment</p>"
+          }
+        ],
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "type": "String",
+            "allowedValues": [
+              "\"groupdict\"",
+              "\"groups\"",
+              "\"match\""
+            ],
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type of matching to perform, overrides auto discovery</p>"
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "type": "List",
+            "optional": false,
+            "field": "List",
+            "description": "<p>of filter names</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "[\n    \"somefilter_with_named_groups\",\n    \"somefilter_with_groups\",\n    \"somefilter_with_no_groups\"\n]",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "Dictionary",
+            "optional": false,
+            "field": "group_dict",
+            "description": "<p>A dictionary based on named groups in regex</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "List",
+            "optional": false,
+            "field": "group_list",
+            "description": "<p>A list of groups based on non named groups in regex</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example: type=None",
+          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"named_group\": \"matched text that doesn't support literal_eval or json.loads\",\n        \"named_group2\": {\n            \"supported\": \"json.loads or literal_eval\"\n        },\n        \"named_group3\": [\n            \"another supported literal_eval/json.loads\"\n        ]\n    },\n    [\n        \"regex2 matched but only has non named groups\",\n        \"group2\",\n        \"group3\"\n    ],\n    \"regex3 match that had no groups returns a string match\"\n]",
+          "type": "json"
+        },
+        {
+          "title": "Response Example: type=groupdict",
+          "content": "HTTP/1.1 200 OK\n[\n    {\n        \"named_group\": \"matched text that doesn't support literal_eval or json.loads\",\n        \"named_group2\": {\n            \"supported\": \"json.loads or literal_eval\"\n        },\n        \"named_group3\": [\n            \"another supported literal_eval/json.loads\",\n            \"woo\"\n        ]\n    },\n    {},\n    {}\n]",
+          "type": "json"
+        },
+        {
+          "title": "Response Example: type=groups",
+          "content": "HTTP/1.1 200 OK\n[\n [\"matched text that doesn't support literal_eval or json.loads\", {\"supported\": \"json.loads or literal_eval\"}, [\"another supported literal_eval/json.loads\"],\n [\"regex2 matched but only has non named groups\", \"group2\", \"group3\"],\n []\n]",
+          "type": "json"
+        },
+        {
+          "title": "Response Example: type=match",
+          "content": "HTTP/1.1 200 OK\n[\n    \"matched text that doesn't support literal_eval or json.loads\\nsupported: json.loads or literal_eval\\n another supported literal_eval/json.loads\",\n    \"regex2 matched but only has non named groups:group2:group3\",\n    \"regex3 match that had no groups returns a string match\"\n]",
           "type": "json"
         }
       ]
@@ -1135,6 +798,343 @@
   },
   {
     "type": "post",
+    "url": "/attachments/filters",
+    "title": "Create Filter",
+    "name": "CreateFilter",
+    "group": "Filters",
+    "description": "<p>Create a filter</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Filters"
+  },
+  {
+    "type": "get",
+    "url": "/attachments/filters/{name}",
+    "title": "Get Filter by name",
+    "name": "GetAttachmentFilter",
+    "group": "Filters",
+    "description": "<p>Get an Filter by name</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "URL Variable": [
+          {
+            "group": "URL Variable",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Filter name</p>"
+          }
+        ],
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "None",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Filters"
+  },
+  {
+    "type": "get",
+    "url": "/attachments/filters",
+    "title": "Get Filters",
+    "name": "GetAttachmentFilters",
+    "group": "Filters",
+    "description": "<p>Get a list of regex filters and names</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "None",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n[{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}]",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Filters"
+  },
+  {
+    "type": "put",
+    "url": "/attachments/filters",
+    "title": "Update Filter",
+    "name": "UpdateAttachmentFilters",
+    "group": "Filters",
+    "description": "<p>Update a filter</p>",
+    "header": {
+      "fields": {
+        "Headers": [
+          {
+            "group": "Headers",
+            "type": "String",
+            "optional": false,
+            "field": "X-Auth-Token",
+            "description": "<p>Identity Token with api access</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "optional": false,
+            "field": "None",
+            "description": ""
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Response Body": [
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "regex",
+            "description": "<p>Regex filter</p>"
+          },
+          {
+            "group": "Response Body",
+            "type": "String",
+            "optional": false,
+            "field": "name",
+            "description": "<p>Name of filter</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Response Example:",
+          "content": "HTTP/1.1 200 OK\n{\n    \"regex\": \".*\",\n    \"name\": \"somefilter\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "./myapp/api/attachments.py",
+    "groupTitle": "Filters"
+  },
+  {
+    "type": "post",
     "url": "/runs",
     "title": "Create Run",
     "name": "CreateRun",
@@ -1415,6 +1415,17 @@
             "field": "limit",
             "defaultValue": "100",
             "description": "<p>Limit runs per request</p>"
+          },
+          {
+            "group": "Parameters",
+            "type": "String",
+            "allowedValues": [
+              "\"passed\"",
+              "\"failed\""
+            ],
+            "optional": false,
+            "field": "status",
+            "description": "<p>Status of test based on failed test count</p>"
           },
           {
             "group": "Parameters",
@@ -1855,6 +1866,46 @@
     },
     "parameter": {
       "fields": {
+        "Parameters": [
+          {
+            "group": "Parameters",
+            "type": "Integer",
+            "size": "1-",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number to start on</p>"
+          },
+          {
+            "group": "Parameters",
+            "type": "Integer",
+            "size": "1-1000",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "100",
+            "description": "<p>Limit runs per request</p>"
+          },
+          {
+            "group": "Parameters",
+            "type": "Integer",
+            "size": "1-1000",
+            "optional": true,
+            "field": "name",
+            "description": "<p>Regex name filter</p>"
+          },
+          {
+            "group": "Parameters",
+            "type": "String",
+            "allowedValues": [
+              "\"passed\"",
+              "\"failed\"",
+              "\"skipped\""
+            ],
+            "optional": false,
+            "field": "status",
+            "description": "<p>Status of test</p>"
+          }
+        ],
         "URL Variable": [
           {
             "group": "URL Variable",

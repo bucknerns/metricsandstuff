@@ -12,11 +12,11 @@ class RunModel(BaseModel):
     def to_dict(self):
         dic = {
             "run_id": self.run_id,
-            "skipped": int(self.skipped),
-            "failed": int(self.failed),
-            "passed": int(self.passed),
-            "run_at": parse_date_string(self.run_at),
-            "run_time": float(self.run_time)}
+            "skipped": self.skipped,
+            "failed": self.failed,
+            "passed": self.passed,
+            "run_at": self.run_at,
+            "run_time": self.run_time}
         dic["metadata"] = self.metadata or {}
         return dic
 
@@ -26,21 +26,19 @@ class RunModel(BaseModel):
             k.split(":", 1)[-1]: v for k, v in data.items()
             if k.startswith(Run.METADATA.format(""))}
         return cls(
-            failed=data.get(Run.FAILED),
-            run_id=data.get(Run.RUN_ID),
+            failed=int(data.get(Run.FAILED)),
+            run_id=str(data.get(Run.RUN_ID)),
             metadata=metadata,
-            passed=data.get(Run.PASSED),
+            passed=int(data.get(Run.PASSED)),
             run_at=parse_date_string(data.get(Run.RUN_AT)),
-            run_time=data.get(Run.RUN_TIME),
-            skipped=data.get(Run.SKIPPED))
+            run_time=float(data.get(Run.RUN_TIME)),
+            skipped=int(data.get(Run.SKIPPED)))
 
     @classmethod
-    def from_dict(cls, data):
+    def from_user_dict(cls, data):
+        # The user cannot send in calculated values thus failed passed and
+        # skipped are not parsed here
         return cls(
-            failed=data.get("failed"),
-            run_id=data.get("run_id"),
-            metadata=data.get("metadata"),
-            passed=data.get("passed"),
-            run_at=data.get("run_at"),
-            run_time=data.get("run_time"),
-            skipped=data.get("skipped"))
+            metadata=cls._api.handle_dict(data.get("metadata"), "metadata"),
+            run_at=cls._api.handle_date(data.get("run_at"), "run_at", False),
+            run_time=cls._api.handle_float(data.get("run_time"), "run_time", False))

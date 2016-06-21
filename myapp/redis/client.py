@@ -191,14 +191,16 @@ class RedisClient(object):
                 test[Test.STATUS] = TEST_STATUSES[int(test.get(Test.STATUS))]
         return ListModel.from_redis(tests, TestModel)
 
-    def get_tests_by_run_id(self, run_id, status=None, name=None):
+    def get_tests_by_run_id(
+        self, run_id, status=None, name=None, limit=DEFAULT_LIMIT,
+            page=DEFAULT_PAGE):
         if status is not None and status not in TEST_STATUSES:
             return None
         run_tests_key = Keys.RUN_TESTS.format(run_id)
         if not self.r.exists(run_tests_key):
             return None
         tests = self.r.lrange(run_tests_key, 0, -1)
-        tests = self.get_tests_by_ids(tests)
+        tests = self.get_tests_by_ids(tests[(page - 1) * limit: page * limit])
         return ListModel([
             test for test in tests
             if ((status is None or status == test.status) and
@@ -306,23 +308,18 @@ class RedisClient(object):
         run_key = Keys.RUN.format(run_id)
         return self.r.exists(run_key)
 
-    def create_attachment_filter(self, name, regex):
-        if self.r.hexists(Keys.FILTERS, name):
-            return None
+    def create_filter(self, name, regex):
         self.r.hset(Keys.FILTERS, name, regex)
         return FilterModel(name, regex)
 
-    def update_attachment_filter(self, name, regex):
-        if not self.r.hexists(Keys.FILTERS, name):
-            return None
-        self.r.hset(Keys.FILTERS, name, regex)
-        return FilterModel(name, regex)
-
-    def get_attachment_filters(self):
+    def get_filters(self):
         return FiltersModel.from_redis(self.r.hgetall(Keys.FILTERS))
 
-    def get_attachment_filter(self, name):
+    def get_filter(self, name):
         regex = self.r.hget(Keys.FILTERS, name)
         if regex is None:
             return FilterModel()
         return FilterModel(name=name, regex=regex)
+
+    def has_filter(self, name):
+        return self.r.hexists(Keys.FILTERS, name)

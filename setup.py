@@ -28,7 +28,7 @@ setup(
     author='Nathan Buckner',
     install_requires=[
         "falcon", "redis", "pytz", "python-dateutil", "requests"],
-    packages=find_packages(exclude=('tests*', 'docs')),
+    packages=find_packages(exclude=('doc')),
     classifiers=(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

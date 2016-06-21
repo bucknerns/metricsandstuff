@@ -7,7 +7,6 @@ class Tests(BaseAPI):
 
     def on_get(self, req, resp):
         """
-        @apiUse Version
         @api {get} /tests Get Tests
         @apiName GetTests
         @apiGroup Tests
@@ -60,7 +59,6 @@ class Tests(BaseAPI):
 
     def on_post(self, req, resp):
         """
-        @apiUse Version
         @api {get} /tests Create Test
         @apiName CreateTest
         @apiGroup Tests
@@ -104,17 +102,7 @@ class Tests(BaseAPI):
                 }
             ]
         """
-        try:
-            model = TestModel.from_json(req.stream.read())
-        except:
-            self.bad_request("Invalid Json in body of request.")
-
-        self.handle_dict(model.metadata, "metadata", False)
-        self.handle_string(model.start_time, "start_time")
-        self.handle_string(model.stop_time, "stop_time")
-        self.handle_run_id(model.run_id)
-        self.handle_test_status(model.status)
-        self.handle_string(model.test_name, "test_name")
+        model = TestModel.from_user(req.stream.read())
         test_id = self.redis.create_test(
             run_id=model.run_id,
             test_name=model.test_name,
@@ -131,7 +119,6 @@ class Test(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
-        @apiUse Version
         @api {get} /tests/{test_id} Get Test by ID
         @apiName GetTest
         @apiGroup Tests
@@ -173,7 +160,6 @@ class TestStats(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
-        @apiUse Version
         @api {get} /tests/{test_id}/stats Get stats by test ID
         @apiName GetTestStatsByID
         @apiGroup Stats
@@ -210,7 +196,6 @@ class TestAttachments(BaseAPI):
 
     def on_get(self, req, resp, test_id):
         """
-        @apiUse Version
         @api {get} /tests/{test_id}/attachments Get Attachments for test
         @apiName GetTestAttachments
         @apiGroup Attachments

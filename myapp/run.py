@@ -1,11 +1,32 @@
+import six
+from importlib import import_module
+import pkgutil
+
 import falcon
 
 from myapp import api
 from myapp.api.base import BaseAPI
 from myapp.auth.client import AuthClient
+from myapp.common.utils import get_config_value
 from myapp.files.client import FilesClient
 from myapp.redis.client import RedisClient
-from myapp.common.utils import get_routes, get_config_value
+
+
+def get_routes(package):
+    routes = []
+    for _, modname, ispkg in pkgutil.walk_packages(
+        path=package.__path__,
+        prefix=package.__name__ + '.',
+            onerror=lambda x: None):
+        if not ispkg:
+            module = import_module(modname)
+            for k, cls in vars(module).items():
+                if k.startswith("_") or not isinstance(cls, six.class_types):
+                    continue
+                if issubclass(cls, BaseAPI):
+                    if getattr(cls, "route", False):
+                        routes.append(cls)
+    return routes
 
 # monkeypatch to force application json on raised exceptions
 falcon.Request.client_prefers = lambda self, media_types: "application/json"

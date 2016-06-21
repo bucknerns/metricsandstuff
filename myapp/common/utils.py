@@ -1,14 +1,10 @@
 from ConfigParser import SafeConfigParser
 from datetime import datetime
-from importlib import import_module
 import os
-import pkgutil
 import six
 import time
 
 from dateutil.parser import parse
-
-from myapp.api.base import BaseAPI
 
 if six.PY3:
     import timezone
@@ -74,23 +70,6 @@ def parse_date_ts(obj=None):
 def parse_date_string(obj=None):
     dt = parse_date_datetime(obj)
     return dt.isoformat()
-
-
-def get_routes(package):
-    routes = []
-    for _, modname, ispkg in pkgutil.walk_packages(
-        path=package.__path__,
-        prefix=package.__name__ + '.',
-            onerror=lambda x: None):
-        if not ispkg:
-            module = import_module(modname)
-            for k, cls in vars(module).items():
-                if k.startswith("_") or not isinstance(cls, six.class_types):
-                    continue
-                if issubclass(cls, BaseAPI):
-                    if getattr(cls, "route", False):
-                        routes.append(cls)
-    return routes
 
 
 def get_config_value(section, key):

@@ -20,7 +20,7 @@ class TestStatsModel(BaseModel):
     def from_redis(cls, data):
         return cls(
             test_name=data.get(TestStats.TEST_NAME),
-            run_count=data.get(TestStats.RUN_COUNT),
-            passed=data.get(TestStats.PASSED),
-            failed=data.get(TestStats.FAILED),
-            skipped=data.get(TestStats.SKIPPED))
+            run_count=int(data.get(TestStats.RUN_COUNT)),
+            passed=int(data.get(TestStats.PASSED)),
+            failed=int(data.get(TestStats.FAILED)),
+            skipped=int(data.get(TestStats.SKIPPED)))
