@@ -161,5 +161,5 @@ class FilterAttachment(BaseAPI):
                 self.handle_filter_name(name, True)).regex
             for name in list_]
         type_ = self.handle_filter_type(req.params.get("type"), False)
-        resp.data = json.dumps(self.files.get_attachment_filter(
+        resp.data = json.dumps(self.files.get_filter(
             attachment_id, regexs, type_))
