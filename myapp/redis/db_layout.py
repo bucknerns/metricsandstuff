@@ -10,7 +10,7 @@ class Keys(object):
     RUNS = "7"  # sorted set - (run_count, timestamp) for date ranges
     RUN_META = "8:{0}:{1}"  # set - with run_id of run with metadata
     TEST = "9:{0}"  # Hash table - with test info
-    TEST_META = "a:{0}:{1}"  # set - with test_ids of tests with metadata a:{key}:{value}
+    TEST_META = "a:{0}:{1}"  # set - with metadata a:{key}:{value}
     TESTS = "b"  # sorted set - tests by timestamp
     RUN_TESTS = "c:{0}"  # list - list of test_ids for run {0}
     TEST_NAME_TO_INDEX = "d"  # hash - mapping for num to name name to num

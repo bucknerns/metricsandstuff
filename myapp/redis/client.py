@@ -6,7 +6,8 @@ from myapp.models.test import TestModel
 from myapp.models.run import RunModel
 from myapp.models.base import ListModel
 from myapp.models.stats import TestStatsModel
-from myapp.models.attachment import AttachmentModel, FilterModel, FiltersModel
+from myapp.models.attachment import AttachmentModel
+from myapp.models.filters import FilterModel, FiltersModel
 from myapp.redis.db_layout import Keys, TestStats, Run, Test, Attachment
 from myapp.common.utils import parse_date_ts
 from myapp.common.constants import (

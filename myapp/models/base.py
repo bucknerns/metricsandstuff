@@ -15,12 +15,7 @@ class BaseModel(object):
 
     @classmethod
     def from_user(cls, data):
-        try:
-            dic = json.loads(data)
-        except:
-            cls._api.bad_request("Invalid Json in body of request.")
-
-        return cls.from_user_dict(dic)
+        return cls.from_user_dict(cls._api.handle_json(data))
 
 
 class ListModel(list):

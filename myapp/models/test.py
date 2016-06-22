@@ -41,7 +41,7 @@ class TestModel(BaseModel):
     def from_user_dict(cls, data):
         return cls(
             metadata=cls._api.handle_dict(data.get("metadata"), "metadata"),
-            run_id=cls._api.handle_run_id(data.get("run_id")),
+            run_id=data.get("run_id"),
             start_time=cls._api.handle_date(
                 data.get("start_time"), "start_time"),
             status=cls._api.handle_test_status(data.get("status")),

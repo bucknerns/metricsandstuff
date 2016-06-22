@@ -41,4 +41,5 @@ class RunModel(BaseModel):
         return cls(
             metadata=cls._api.handle_dict(data.get("metadata"), "metadata"),
             run_at=cls._api.handle_date(data.get("run_at"), "run_at", False),
-            run_time=cls._api.handle_float(data.get("run_time"), "run_time", False))
+            run_time=cls._api.handle_float(
+                data.get("run_time"), "run_time", False))

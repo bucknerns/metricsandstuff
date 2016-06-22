@@ -1,3 +1,4 @@
+import json
 import re
 from base64 import b64decode
 
@@ -5,7 +6,8 @@ import falcon
 import six
 
 from myapp.common.constants import (
-    RUN_STATUSES, TEST_STATUSES, DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT)
+    RUN_STATUSES, TEST_STATUSES, DEFAULT_LIMIT, DEFAULT_PAGE, MAX_LIMIT,
+    FILTER_TYPES)
 from myapp.common.utils import parse_date_string
 
 
@@ -16,6 +18,7 @@ class BaseAPI(object):
         self.redis = redis_client
         self.files = files_client
 
+    # falcon helpers
     @staticmethod
     def bad_request(message):
         raise falcon.HTTPBadRequest(
@@ -29,25 +32,57 @@ class BaseAPI(object):
     def redirect(location):
         raise falcon.HTTPMovedPermanently(location)
 
+    # api specific handle methods
+    def handle_test_id(self, test_id, required=True):
+        if required:
+            self.handle_required(test_id, "test_id")
+        elif test_id is None:
+            return None
+        if not self.redis.is_valid_test(test_id):
+            self.bad_request("Invalid 'test_id'.")
+        return test_id
+
+    def handle_attachment_id(self, attachment_id, required=True):
+        if required:
+            self.handle_required(attachment_id, "attachment_id")
+        elif attachment_id is None:
+            return None
+        if not self.redis.is_valid_attachment(attachment_id):
+            self.bad_request("Invalid 'attachment_id'.")
+        return attachment_id
+
+    def handle_run_id(self, run_id, required=True):
+        if required:
+            self.handle_required(run_id, "run_id")
+        elif run_id is None:
+            return None
+        if not self.redis.is_valid_run(run_id):
+            self.bad_request("Invalid 'run_id'.")
+        return run_id
+
+    def handle_filter_regex(self, name, regex, exists):
+        self.handle_filter_name(name, exists)
+        return name, self.handle_regex(regex, "regex")
+
+    def handle_filter_name(self, name, exists):
+        name = self.handle_string(name, "name")
+        if exists != self.redis.has_filter(name):
+            if exists:
+                self.bad_request("Filter does not exist: {0}".format(name))
+            self.bad_request("Filter already exists")
+        return name
+
     @classmethod
     def handle_run_status(cls, status, required=True):
-        if required:
-            cls.handle_required(status, "status")
-        elif status is None:
-            return None
-        if status is not None and status not in RUN_STATUSES:
-            cls.bad_request("'status' not in {0}.".format(RUN_STATUSES))
-        return status
+        return cls.handle_stringlist(status, "status", RUN_STATUSES, required)
 
     @classmethod
     def handle_test_status(cls, status, required=True):
-        if required:
-            cls.handle_required(status, "status")
-        elif status is None:
-            return None
-        if status and status not in TEST_STATUSES:
-            cls.bad_request("'status' not in {0}.".format(TEST_STATUSES))
-        return status
+        return cls.handle_stringlist(status, "status", TEST_STATUSES, required)
+
+    @classmethod
+    def handle_filter_type(cls, type_, required=True):
+        return cls.handle_stringlist(type_, "status", FILTER_TYPES, required)
 
     @classmethod
     def handle_limit(cls, limit):
@@ -60,6 +95,18 @@ class BaseAPI(object):
         if page is None:
             page = DEFAULT_PAGE
         return cls.handle_int(page, "page", min_=1)
+
+    # generic helpers
+    @classmethod
+    def handle_stringlist(cls, value, value_name, accepted_values, required):
+        if required:
+            cls.handle_required(value, value_name)
+        elif value is None:
+            return None
+        if value and value not in accepted_values:
+            cls.bad_request("'{0}' not in {1}.".format(
+                value_name, TEST_STATUSES))
+        return value
 
     @classmethod
     def handle_int(cls, number, var_name, min_=None, max_=None, required=True):
@@ -94,33 +141,6 @@ class BaseAPI(object):
             cls.bad_request("'{0}' must be a string".format(var_name))
         return string
 
-    def handle_test_id(self, test_id, required=True):
-        if required:
-            self.handle_required(test_id, "test_id")
-        elif test_id is None:
-            return None
-        if not self.redis.is_valid_test(test_id):
-            self.bad_request("Invalid 'test_id'.")
-        return test_id
-
-    def handle_attachment_id(self, attachment_id, required=True):
-        if required:
-            self.handle_required(attachment_id, "attachment_id")
-        elif attachment_id is None:
-            return None
-        if not self.redis.is_valid_attachment(attachment_id):
-            self.bad_request("Invalid 'attachment_id'.")
-        return attachment_id
-
-    def handle_run_id(self, run_id, required=True):
-        if required:
-            self.handle_required(run_id, "run_id")
-        elif run_id is None:
-            return None
-        if not self.redis.is_valid_run(run_id):
-            self.bad_request("Invalid 'run_id'.")
-        return run_id
-
     @classmethod
     def handle_float(cls, number, var_name, required=True):
         if required:
@@ -145,22 +165,18 @@ class BaseAPI(object):
             for k, v in dic.items():
                 if isinstance(v, (list, dict)):
                     cls.bad_request(
-                        "Api does not support nested dictionary:'{0}'.".format(
+                        "'{0}' does not support nested dictionary.".format(
                             var_name))
         return dic
 
     @classmethod
     def handle_date(cls, date, var_name, required=True):
-        if required:
-            cls.handle_required(date, var_name)
-        elif date is None:
-            return None
-        cls.handle_string(date, var_name)
+        date = cls.handle_string(date, var_name, required)
         try:
-            return parse_date_string(date)
+            return date if date is None else parse_date_string(date)
         except:
             cls._api.bad_request(
-                "Date for var '{0}' is invalid.".format(var_name))
+                "'{0}' must be a valid iso format date.".format(var_name))
 
     @classmethod
     def handle_required(cls, var, var_name):
@@ -170,25 +186,41 @@ class BaseAPI(object):
 
     @classmethod
     def handle_base64(cls, var, var_name, required=False):
+        var = cls._api.handle_string(var, var_name, required)
         try:
-            return b64decode(cls._api.handle_string(var, var_name, required))
+            return var if var is None else b64decode(var)
         except:
-            cls._API.bad_request("Invalid Base64 in data")
+            cls._API.bad_request("'{0}' must be valid base64.".format(
+                var_name))
 
     @classmethod
-    def handle_regex(self, regex, varname, required=True):
-        self.handle_string(regex, varname)
+    def handle_regex(cls, regex, var_name, required=True):
+        regex = cls.handle_string(regex, var_name, required)
         try:
-            re.compile(regex)
-            return regex
+            return regex if regex is None else re.compile(regex)
         except re.error:
-            self.bad_request("Invalid regex '{0}'".format(varname))
+            cls.bad_request("'{0}' must be a valid regex.".format(var_name))
 
     @classmethod
-    def handle_filter(self, name, regex, exists):
-        name = self.handle_string(name, "name")
-        if exists != self.redis.has_filter(name):
-            if exists:
-                self.bad_request("Filter does not exist update failed")
-            self.bad_request("Filter already exists create failed")
-        return name, self.handle_regex(regex, "regex")
+    def handle_json(cls, data):
+        try:
+            return json.loads(data)
+        except:
+            cls._api.bad_request("Invalid Json in body of request.")
+
+    @classmethod
+    def handle_list(cls, list_, var_name, required=False, nested=False):
+        if required:
+            cls.handle_required(list_, var_name)
+        elif list_ is None:
+            return None
+        if not isinstance(list_, list):
+            cls.bad_request("'{0}' must be a dictionary.".format(var_name))
+
+        if not nested:
+            for v in list_:
+                if isinstance(v, (list, dict)):
+                    cls.bad_request(
+                        "'{0}' does not support nested lists.".format(
+                            var_name))
+        return list_

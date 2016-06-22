@@ -30,6 +30,8 @@ class FilesClient(BaseRaxClient):
             self.create_container(container, headers=headers)
 
     def create_attachment(self, id_, data, name):
+        if data is None:
+            return
         id_ = int(id_)
         container = "{0}{1}".format(self.cp, id_ % self.CONTAINER_COUNT)
         headers = {
