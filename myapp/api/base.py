@@ -105,7 +105,7 @@ class BaseAPI(object):
             return None
         if value and value not in accepted_values:
             cls.bad_request("'{0}' not in {1}.".format(
-                value_name, TEST_STATUSES))
+                value_name, accepted_values))
         return value
 
     @classmethod
@@ -175,7 +175,7 @@ class BaseAPI(object):
         try:
             return date if date is None else parse_date_string(date)
         except:
-            cls._api.bad_request(
+            cls.bad_request(
                 "'{0}' must be a valid iso format date.".format(var_name))
 
     @classmethod
@@ -186,11 +186,11 @@ class BaseAPI(object):
 
     @classmethod
     def handle_base64(cls, var, var_name, required=False):
-        var = cls._api.handle_string(var, var_name, required)
+        var = cls.handle_string(var, var_name, required)
         try:
             return var if var is None else b64decode(var)
         except:
-            cls._API.bad_request("'{0}' must be valid base64.".format(
+            cls.bad_request("'{0}' must be valid base64.".format(
                 var_name))
 
     @classmethod
@@ -206,7 +206,7 @@ class BaseAPI(object):
         try:
             return json.loads(data)
         except:
-            cls._api.bad_request("Invalid Json in body of request.")
+            cls.bad_request("Invalid Json in body of request.")
 
     @classmethod
     def handle_list(cls, list_, var_name, required=False, nested=False):

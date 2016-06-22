@@ -49,7 +49,7 @@ class Filters(BaseAPI):
         self._create_filter(req, resp, True)
 
     def _create_filter(self, req, resp, update):
-        model = FilterModel.from_user(req.stream.read(), update)
+        model = FilterModel.from_user(req.stream.read())
         self.handle_filter_regex(model.name, model.regex, update)
         resp.data = self.redis.create_filter(model.name, model.regex).to_json()
 
