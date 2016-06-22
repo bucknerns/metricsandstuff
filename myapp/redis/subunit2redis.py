@@ -16,17 +16,16 @@
 import copy
 import sys
 
-from dateutil import parser as date_parser
 from multiprocess import Pool
 from oslo_config import cfg
 from oslo_db import options
 from pbr import version
 from stevedore import enabled
 
-from subunit2sql.db import api
 from subunit2sql import exceptions
 from subunit2sql import read_subunit as subunit
 from myapp.redis.client import RedisClient
+from myapp.elasticsearch.client import ElasticsearchClient
 from myapp.common.utils import parse_date_ts, parse_date_string
 from uuid import uuid4
 from random import randint, choice
@@ -133,6 +132,7 @@ def _get_test_attrs_list(attrs):
         return None
 
 db_client = None
+es_client = None
 
 
 def process_results(results):
@@ -141,8 +141,10 @@ def process_results(results):
     products = ["compute", "files", "cbs", "brm", "someuiproduct"]
     whattypeit = ["smoke", "regression", "blarg", "blerg", "smoke-prod"]
     datacenters = ["dfw1", "ord", "hkg", "syd"]
-    max_end = max([parse_date_ts(data.get("end_time")) for data in results.values()])
-    min_start = min([parse_date_ts(data.get("start_time")) for data in results.values()])
+    max_end = max([
+        parse_date_ts(data.get("end_time")) for data in results.values()])
+    min_start = min([
+        parse_date_ts(data.get("start_time")) for data in results.values()])
     run_time = (max_end - min_start) * randint(1, 5000)
     run_at = parse_date_string(randint(1333238400, 1465506042))
     metadata = CONF.run_meta or {}
@@ -155,11 +157,18 @@ def process_results(results):
         run_time=run_time,
         run_at=run_at,
         metadata=metadata)
+    es_client.create_run(
+        run_id=run_id,
+        run_at=run_at,
+        run_time=run_time,
+        metadata=metadata)
     start_run_ts = parse_date_ts(run_at)
     end_run_ts = start_run_ts + run_time
     for test, data in results.items():
         start_time = randint(int(start_run_ts), int(end_run_ts))
-        end_time = start_time + parse_date_ts(data.get("end_time")) - parse_date_ts(data.get("start_time"))
+        end_time = (
+            start_time + parse_date_ts(data.get("end_time")) -
+            parse_date_ts(data.get("start_time")))
         start_time = parse_date_string(start_time)
         end_time = parse_date_string(end_time)
         n = randint(0, 1600)
@@ -169,13 +178,22 @@ def process_results(results):
             status = "skipped"
         else:
             status = "passed"
-        db_client.create_test(
+        test_id = db_client.create_test(
             run_id=run_id,
             test_name=test,
             status=status,
             start_time=start_time,
             end_time=end_time,
             metadata=data.get("metadata"))
+        es_client.create_test(
+            test_id=test_id,
+            run_id=run_id,
+            test_name=test,
+            status=status,
+            start_time=start_time,
+            end_time=end_time,
+            metadata=data.get("metadata"))
+
 
 def get_extensions():
     def check_enabled(ext):
@@ -194,6 +212,7 @@ def get_targets(extensions):
 
 def main():
     global db_client
+    global es_client
     cli_opts()
 
     extensions = get_extensions()
@@ -214,7 +233,7 @@ def main():
                                        attr_regex=CONF.attr_regex,
                                        targets=targets)]
     streams = [s.get_results() for s in streams]
-
+    es_client = ElasticsearchClient()
     db_client = RedisClient()
     streams[0].pop("run_time")
     pool = Pool(20)
