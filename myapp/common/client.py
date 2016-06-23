@@ -97,7 +97,7 @@ class BaseHTTPClient(object):
     @_log_transaction
     def request(self, method, url, **kwargs):
         headers = self.headers
-        headers.update(kwargs.get("headers"))
+        headers.update(kwargs.get("headers", {}))
         kwargs.update({"headers": headers})
         kwargs.update({"verify": False})
         return requests.request(method, url, **kwargs)
