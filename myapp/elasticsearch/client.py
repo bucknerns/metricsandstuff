@@ -1,15 +1,13 @@
-import requests
 import json
 
 from myapp.common.utils import parse_date_string, parse_date_ts
+from myapp.common.client import BaseHTTPClient
 
 
-class ElasticsearchClient(object):
+class ElasticsearchClient(BaseHTTPClient):
     def __init__(self, url="http://localhost:9200", index="metrics"):
+        super(ElasticsearchClient, self).__init__(url)
         self.index = index
-        self.url = url
-        self.s = requests.Session()
-        self.s.verify = False
         self.s.headers = {"Content-Type": "application/json"}
         self.create_index()
 
