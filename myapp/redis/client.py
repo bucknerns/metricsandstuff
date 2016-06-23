@@ -228,8 +228,8 @@ class RedisClient(object):
         tmp2 = uuid4().get_hex()
         pipe.zinterstore(tmp2, intersect_sets, aggregate="max")
         pipe.zrevrange(tmp2, limit * (page - 1), limit * page)
-        tests = pipe.execute()[-1]
-        return self.get_tests_by_ids(tests)
+        pipe.delete(tmp, tmp2)
+        return self.get_tests_by_ids(pipe.execute()[-2])
 
     def get_test_stats_by_name(self, test_name):
         stats_key = Keys.TEST_STATS.format(test_name)
