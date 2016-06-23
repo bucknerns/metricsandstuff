@@ -57,7 +57,6 @@ class ElasticsearchClient(BaseHTTPClient):
         return self.put("{0}/{1}".format(self.url, self.index), data=data)
 
     def add_bulk_entry(self, entries, type_, data, id_=None, parent=None):
-        entries = None or []
         dic = {}
         dic["_index"] = self.index
         dic["_type"] = type_
