@@ -8,7 +8,7 @@ class ElasticsearchClient(BaseHTTPClient):
     def __init__(self, url="http://localhost:9200", index="metrics"):
         super(ElasticsearchClient, self).__init__(url)
         self.index = index
-        self.s.headers = {"Content-Type": "application/json"}
+        self.headers = {"Content-Type": "application/json"}
         self.create_index()
 
     def create_run(
@@ -25,7 +25,7 @@ class ElasticsearchClient(BaseHTTPClient):
             data = {"key": k, "value": v}
             self.add_bulk_entry(
                 entries, "run_metadata", data, None, parent=run_id)
-        return self.s.post(url, data="\n".join(entries))
+        return self.post(url, data="\n".join(entries))
 
     def create_test(
         self, test_id, run_id, test_name, status, start_time, end_time,
@@ -45,7 +45,7 @@ class ElasticsearchClient(BaseHTTPClient):
             data = {"key": k, "value": v}
             self.add_bulk_entry(
                 entries, "test_metadata", data, None, parent=run_id)
-        return self.s.post(url, data="\n".join(entries))
+        return self.post(url, data="\n".join(entries))
 
     def create_index(self):
         data = json.dumps({
@@ -54,7 +54,7 @@ class ElasticsearchClient(BaseHTTPClient):
                 "run_metadata": {"_parent": {"type": "run"}},
                 "test": {"_parent": {"type": "run"}},
                 "test_metadata": {"_parent": {"type": "test"}}}})
-        return self.s.put("{0}/{1}".format(self.url, self.index), data=data)
+        return self.put("{0}/{1}".format(self.url, self.index), data=data)
 
     def add_bulk_entry(self, entries, type_, data, id_=None, parent=None):
         entries = None or []
