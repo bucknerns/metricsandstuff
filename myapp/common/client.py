@@ -87,8 +87,7 @@ def _log_transaction(func):
 
 class BaseHTTPClient(object):
     def __init__(self, url):
-        self._s = requests.Session()
-        self._s.verify = False
+        self.headers = {}
         self.url = url
 
     @classproperty
@@ -96,8 +95,9 @@ class BaseHTTPClient(object):
         return logging.getLogger(get_object_namespace(cls))
 
     @_log_transaction
-    def request(self, method, url, **kwargs):
-        return self._s.request(method, url, **kwargs)
+    def request(method, url, **kwargs):
+        kwargs.update({"verify": False})
+        return requests.request(method, url, **kwargs)
 
     def put(self, url, **kwargs):
         return self.request('PUT', url, **kwargs)
