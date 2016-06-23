@@ -18,7 +18,7 @@ def _safe_decode(text, incoming='utf-8', errors='replace'):
 
 def _log_transaction(func):
     def _wrapper(self, *args, **kwargs):
-        level = logging.DEBUG
+        level = 10
         logline = '{0} {1}'.format(args, kwargs)
 
         try:
