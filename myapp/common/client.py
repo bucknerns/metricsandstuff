@@ -4,7 +4,7 @@ import logging
 from requests.packages.urllib3 import disable_warnings
 import requests
 
-from myapp.common.logging import classproperty, get_object_namespace
+from myapp.common.applogging import classproperty, get_object_namespace
 
 disable_warnings()
 
