@@ -86,10 +86,11 @@ class TestsByRunID(BaseAPI):
         """
         tests = self.redis.get_tests_by_run_id(
             run_id=self.handle_run_id(run_id, True),
-            status=self.handle_run_status(req.params.get("status"), False),
-            name=self.handle_regex(req.params.get("name"), "name", False),
-            limit=self.handle_limit(req.params.get("limit")),
-            page=self.handle_page(req.params.get("page")))
+            status=self.handle_test_status(
+                req.params.pop("status", None), False),
+            limit=self.handle_limit(req.params.pop("limit", None)),
+            page=self.handle_page(req.params.pop("page", None)),
+            metadata=req.params)
         resp.data = tests.to_json()
 
 

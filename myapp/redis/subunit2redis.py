@@ -27,8 +27,11 @@ from subunit2sql import read_subunit as subunit
 from myapp.redis.client import RedisClient
 from myapp.elasticsearch.client import ElasticsearchClient
 from myapp.common.utils import parse_date_ts, parse_date_string
-from uuid import uuid4
 from random import randint, choice
+import requests
+from base64 import b64encode
+import json
+
 
 CONF = cfg.CONF
 
@@ -133,6 +136,7 @@ def _get_test_attrs_list(attrs):
 
 db_client = None
 es_client = None
+attachment_log = b64encode(open("/root/cafe.master.log").read())
 
 
 def process_results(results):
@@ -150,18 +154,18 @@ def process_results(results):
     metadata = CONF.run_meta or {}
     metadata["engine"] = choice(tester_names)
     metadata["build_version"] = choice(builds)
-    metadata[choice(products)] = choice(whattypeit)
+    metadata["product"] = choice(products)
+    metadata["type"] = choice(whattypeit)
     metadata["datacenter"] = choice(datacenters)
-    metadata[uuid4().get_hex()] = uuid4().get_hex()
     run_id = db_client.create_run(
         run_time=run_time,
         run_at=run_at,
         metadata=metadata)
-    es_client.create_run(
+    """es_client.create_run(
         run_id=run_id,
         run_at=run_at,
         run_time=run_time,
-        metadata=metadata)
+        metadata=metadata)"""
     start_run_ts = parse_date_ts(run_at)
     end_run_ts = start_run_ts + run_time
     for test, data in results.items():
@@ -184,7 +188,7 @@ def process_results(results):
             status=status,
             start_time=start_time,
             end_time=end_time,
-            metadata=data.get("metadata"))
+            metadata=metadata)
         es_client.create_test(
             test_id=test_id,
             run_id=run_id,
@@ -193,6 +197,11 @@ def process_results(results):
             start_time=start_time,
             end_time=end_time,
             metadata=data.get("metadata"))
+    attach_request = {
+        "name": "cafe.master.log", "data": attachment_log, "run_id": run_id}
+    requests.post(
+        "http://127.0.0.1/api/attachments", data=json.dumps(attach_request),
+        headers={"Content-Type": "application/json"})
 
 
 def get_extensions():
@@ -238,6 +247,25 @@ def main():
     streams[0].pop("run_time")
     pool = Pool(20)
     pool.map(process_results, streams * 1000)
+    regex = (
+        '(?s)------------\n'
+        'REQUEST SENT\n'
+        '------------\n'
+        '.*?request method..: (?P<request_method>.*?)\n'
+        '.*?request url.....: (?P<request_url>.*?)\n'
+        '.*?request params..: (?P<request_params>.*?)\n'
+        '.*?request headers.: (?P<request_headers>.*?)\n'
+        '.*?request body....: (?P<request_body>.*?)\n'
+        '.*?-----------------\nRESPONSE RECEIVED\n-----------------\n'
+        '.*?response status..: <Response \[(?P<response_status>.*?)\]>\n'
+        '.*?response time....: (?P<response_time>.*?)\n'
+        '.*?response headers.: (?P<response_headers>.*?)\n'
+        '.*?response body....: (?P<response_body>.*?)\n'
+        '-' * 79)
+    filter_request = {"name": "opencafe_log_http", "regex": regex}
+    requests.post(
+        "http://127.0.0.1/api/filters", data=json.dumps(filter_request),
+        headers={"Content-Type": "application/json"})
 
 if __name__ == "__main__":
     sys.exit(main())

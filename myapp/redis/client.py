@@ -22,22 +22,22 @@ class RedisClient(object):
     def get_runs(
         self, run_after=None, run_before=None, limit=DEFAULT_LIMIT,
             page=DEFAULT_PAGE, status=None, **metadata):
-        tmp = str(uuid4())
-        unions_sets = [
+        tmp = uuid4().get_hex()
+        intersect_sets = [
             Keys.RUN_META.format(k, v) for k, v in metadata.items()]
-        unions_sets.append(Keys.RUNS)
+        intersect_sets.append(Keys.RUNS)
 
         run_after = parse_date_ts(run_after) if run_after else "-inf"
         run_before = parse_date_ts(run_before) if run_before else "+inf"
 
         if status == "failed":
-            unions_sets.append(Keys.FAILED_RUNS)
+            intersect_sets.append(Keys.FAILED_RUNS)
         elif status == "passed":
-            unions_sets.append(Keys.PASSED_RUNS)
+            intersect_sets.append(Keys.PASSED_RUNS)
 
-        if len(unions_sets) > 1:
+        if len(intersect_sets) > 1:
             pipe = self.r.pipeline()
-            pipe.zinterstore(tmp, unions_sets, aggregate="max")
+            pipe.zinterstore(tmp, intersect_sets, aggregate="max")
             pipe.zrevrangebyscore(
                 tmp, run_before, run_after, limit * (page - 1), limit)
             pipe.delete(tmp)
@@ -84,7 +84,9 @@ class RedisClient(object):
         test_key = Keys.TEST.format(test_id)
         run_key = Keys.RUN.format(run_id)
         stats_key = Keys.TEST_STATS.format(test_name)
-        run_tests_key = Keys.RUN_TESTS.format(run_id)
+        run_tests_failed_key = Keys.RUN_TESTS_FAILED.format(run_id)
+        run_tests_passed_key = Keys.RUN_TESTS_PASSED.format(run_id)
+        run_tests_skipped_key = Keys.RUN_TESTS_SKIPPED.format(run_id)
         start_time = parse_date_ts(start_time)
         end_time = parse_date_ts(end_time)
 
@@ -101,6 +103,7 @@ class RedisClient(object):
             index = self.r.incr(Keys.TEST_NAME_COUNT, 1)
             self.r.hmset(Keys.TEST_NAME_TO_INDEX, {test_name: index})
             self.r.hmset(Keys.TEST_INDEX_TO_NAME, {index: test_name})
+
         pipe = self.r.pipeline()
 
         mapping = {
@@ -122,21 +125,26 @@ class RedisClient(object):
         if status == TEST_STATUSES.index("passed"):
             pipe.hincrby(stats_key, TestStats.PASSED)
             pipe.hincrby(run_key, Run.PASSED)
+            pipe.sadd(run_tests_passed_key, test_id)
+            pipe.expire(run_tests_passed_key, self.max_age)
         elif status == TEST_STATUSES.index("failed"):
             pipe.hincrby(run_key, Run.FAILED)
             pipe.hincrby(stats_key, TestStats.FAILED)
             pipe.sadd(Keys.FAILED_RUNS, run_id)
             pipe.srem(Keys.PASSED_RUNS, run_id)
+            pipe.sadd(run_tests_failed_key, test_id)
+            pipe.expire(run_tests_failed_key, self.max_age)
         elif status == TEST_STATUSES.index("skipped"):
             pipe.hincrby(stats_key, TestStats.SKIPPED)
             pipe.hincrby(run_key, Run.SKIPPED)
+            pipe.sadd(run_tests_skipped_key, test_id)
+            pipe.expire(run_tests_skipped_key, self.max_age)
         else:
             raise Exception("invalid status")
-        pipe.rpush(run_tests_key, test_id)
+
         pipe.zadd(Keys.TESTS, test_id, start_time)
+        pipe.expire(test_key, self.max_age)
         pipe.execute()
-        self.r.expire(test_key, self.max_age)
-        self.r.expire(run_tests_key, self.max_age)
         return test_id
 
     def get_run_by_id(self, id_):
@@ -148,16 +156,16 @@ class RedisClient(object):
     def get_tests(
         self, run_after=None, run_before=None, limit=DEFAULT_LIMIT,
             page=DEFAULT_PAGE, **metadata):
-        tmp = str(uuid4())
-        unions_sets = [Keys.TESTS]
-        unions_sets += [
+        tmp = uuid4().get_hex()
+        intersect_sets = [Keys.TESTS]
+        intersect_sets += [
             Keys.TEST_META.format(k, v) for k, v in metadata.items()]
         run_after = parse_date_ts(run_after) if run_after else "-inf"
         run_before = parse_date_ts(run_before) if run_before else "+inf"
 
-        if len(unions_sets) > 1:
+        if len(intersect_sets) > 1:
             pipe = self.r.pipeline()
-            pipe.zinterstore(tmp, unions_sets, aggregate="max")
+            pipe.zinterstore(tmp, intersect_sets, aggregate="max")
             pipe.zrevrangebyscore(
                 tmp, run_before, run_after, limit * (page - 1), limit)
             pipe.expire(tmp, 3)
@@ -193,19 +201,35 @@ class RedisClient(object):
         return ListModel.from_redis(tests, TestModel)
 
     def get_tests_by_run_id(
-        self, run_id, status=None, name=None, limit=DEFAULT_LIMIT,
-            page=DEFAULT_PAGE):
-        if status is not None and status not in TEST_STATUSES:
-            return None
-        run_tests_key = Keys.RUN_TESTS.format(run_id)
-        if not self.r.exists(run_tests_key):
-            return None
-        tests = self.r.lrange(run_tests_key, 0, -1)
-        tests = self.get_tests_by_ids(tests[(page - 1) * limit: page * limit])
-        return ListModel([
-            test for test in tests
-            if ((status is None or status == test.status) and
-                (name is None or re.search(name, test.name)))])
+        self, run_id, status=None, limit=DEFAULT_LIMIT, page=DEFAULT_PAGE,
+            metadata=None):
+        metadata = metadata or {}
+        run_tests_failed_key = Keys.RUN_TESTS_FAILED.format(run_id)
+        run_tests_passed_key = Keys.RUN_TESTS_PASSED.format(run_id)
+        run_tests_skipped_key = Keys.RUN_TESTS_SKIPPED.format(run_id)
+
+        intersect_sets = [
+            Keys.TEST_META.format(k, v) for k, v in metadata.items()]
+        tmp = uuid4().get_hex()
+        pipe = self.r.pipeline()
+        if status is None:
+            tests_key = tmp
+            pipe.sunionstore(tmp, [
+                run_tests_failed_key, run_tests_passed_key,
+                run_tests_skipped_key])
+        elif status == "passed":
+            tests_key = run_tests_passed_key
+        elif status == "failed":
+            tests_key = run_tests_failed_key
+        elif status == "skipped":
+            tests_key = run_tests_skipped_key
+        intersect_sets.append(tests_key)
+        intersect_sets.append(Keys.TESTS)
+        tmp2 = uuid4().get_hex()
+        pipe.zinterstore(tmp2, intersect_sets, aggregate="max")
+        pipe.zrevrange(tmp2, limit * (page - 1), limit * page)
+        tests = pipe.execute()[-1]
+        return self.get_tests_by_ids(tests)
 
     def get_test_stats_by_name(self, test_name):
         stats_key = Keys.TEST_STATS.format(test_name)
