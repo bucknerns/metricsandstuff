@@ -64,11 +64,21 @@ class RequireJSON(object):
                     href='http://docs.examples.com/api/json')
 
 
+class JsonpSupport(object):
+    def process_request(self, req, resp):
+        self.jsonp = req.params.pop("jsonp", False)
+
+    def process_response(self, req, resp, resource):
+        if self.jsonp is not False:
+            resp.data = "{0}({1})".format(self.jsonp, resp.data)
+
+
 def handle_404(req, resp):
     BaseAPI.not_found()
 
 
-app = falcon.API(media_type="application/json", middleware=[RequireJSON()])
+app = falcon.API(media_type="application/json", middleware=[
+    RequireJSON(), JsonpSupport()])
 for class_ in routes:
     app.add_route(class_.route, class_(redis_client, files_client))
 

@@ -1,7 +1,7 @@
 import requests
 import json
 
-from myapp.common.utils import parse_date_string
+from myapp.common.utils import parse_date_string, parse_date_ts
 
 
 class ElasticsearchClient(object):
@@ -11,46 +11,63 @@ class ElasticsearchClient(object):
         self.s = requests.Session()
         self.s.verify = False
         self.s.headers = {"Content-Type": "application/json"}
+        self.create_index()
 
-    def create_run(self, run_id, run_at, run_time=0, metadata=None):
+    def create_run(
+            self, run_id, run_at, run_time=0, metadata=None):
         metadata = metadata or {}
-        url = "{0}/{1}/run/{2}".format(self.url, self.index, run_id)
-        metadata = {"meta:{0}".format(k): v for k, v in metadata.items()}
-        mapping = {
-            "run_at": parse_date_string(run_at),
-            "run_time": run_time}
-        mapping.update(metadata)
-        return self.s.post(url, data=json.dumps(mapping))
+        entries = []
+        url = "{0}/{1}/_bulk".format(self.url, self.index)
+        data = {
+            "start_time": parse_date_string(run_at),
+            "end_time": parse_date_string(
+                parse_date_ts(run_at) + parse_date_ts(run_time))}
+        self.add_bulk_entry(entries, "run", data, id_=run_id)
+        for k, v in metadata.items():
+            data = {"key": k, "value": v}
+            self.add_bulk_entry(
+                entries, "run_metadata", data, None, parent=run_id)
+        return self.s.post(url, data="\n".join(entries))
 
     def create_test(
         self, test_id, run_id, test_name, status, start_time, end_time,
             metadata=None):
         metadata = metadata or {}
-        url = "{0}/{1}/test/{2}".format(self.url, self.index, test_id)
-        metadata = {"meta:{0}".format(k): v for k, v in metadata.items()}
-        params = {"parent": str(run_id)}
+        entries = []
+        url = "{0}/{1}/_bulk".format(self.url, self.index)
         start_time = parse_date_string(start_time)
         end_time = parse_date_string(end_time)
-        mapping = {
+        data = {
             "test_name": test_name,
             "status": status,
             "start_time": start_time,
             "end_time": end_time}
-        mapping.update(metadata)
-        return self.s.post(url, data=json.dumps(mapping), params=params)
+        self.add_bulk_entry(entries, "test", data, id_=test_id, parent=run_id)
+        for k, v in metadata.items():
+            data = {"key": k, "value": v}
+            self.add_bulk_entry(
+                entries, "test_metadata", data, None, parent=run_id)
+        return self.s.post(url, data="\n".join(entries))
 
-    def init_test_mapping(self):
-        data = json.dumps({"test": {"_parent": {"type": "run"}}})
-        return self.s.put(
-            "{0}/{1}/test/_mapping".format(self.url, self.index), data=data)
+    def create_index(self):
+        data = json.dumps({
+            "mappings": {
+                "run": {},
+                "run_metadata": {"_parent": {"type": "run"}},
+                "test": {"_parent": {"type": "run"}},
+                "test_metadata": {"_parent": {"type": "test"}}}})
+        return self.s.put("{0}/{1}".format(self.url, self.index), data=data)
 
-    def init_run_mapping(self):
-        data = json.dumps({"run": {}})
-        return self.s.put(
-            "{0}/{1}/run/_mapping".format(self.url, self.index), data=data)
-
-    def init_run_metadata_mapping(self):
-        data = json.dumps({"run_metadata": {"_parent": {"type": "run"}}})
-        return self.s.put(
-            "{0}/{1}/run_metadata/_mapping".format(self.url, self.index),
-            data=data)
+    def add_bulk_entry(self, entries, type_, data, id_=None, parent=None):
+        entries = None or []
+        dic = {}
+        dic["_index"] = self.index
+        dic["_type"] = type_
+        if id_:
+            dic["_id"] = id_
+        if parent:
+            dic["_parent"] = parent
+        meta = {"index": dic}
+        entries.append(json.dumps(meta))
+        entries.append(json.dumps(data))
+        return entries

@@ -15,6 +15,7 @@
 
 import copy
 import sys
+import os
 
 from multiprocess import Pool
 from oslo_config import cfg
@@ -136,7 +137,8 @@ def _get_test_attrs_list(attrs):
 
 db_client = None
 es_client = None
-attachment_log = b64encode(open("/root/cafe.master.log").read())
+attachment_log = b64encode(open(os.path.expanduser(
+    "~/Downloads/cafe.master.log")).read())
 
 
 def process_results(results):
@@ -161,11 +163,11 @@ def process_results(results):
         run_time=run_time,
         run_at=run_at,
         metadata=metadata)
-    es_client.create_run(
+    """es_client.create_run(
         run_id=run_id,
         run_at=run_at,
         run_time=run_time,
-        metadata=metadata)
+        metadata=metadata)"""
     start_run_ts = parse_date_ts(run_at)
     end_run_ts = start_run_ts + run_time
     for test, data in results.items():
@@ -189,16 +191,17 @@ def process_results(results):
             start_time=start_time,
             end_time=end_time,
             metadata=metadata)
-        es_client.create_test(
+        """es_client.create_test(
             test_id=test_id,
             run_id=run_id,
             test_name=test,
             status=status,
             start_time=start_time,
             end_time=end_time,
-            metadata=data.get("metadata"))
+            metadata=data.get("metadata"))"""
     attach_request = {
-        "name": "cafe.master.log", "data": attachment_log, "run_id": run_id}
+        "name": "cafe.master.log", "data": attachment_log, "run_id": run_id,
+        "test_id": test_id}
     requests.post(
         "http://127.0.0.1/api/attachments", data=json.dumps(attach_request),
         headers={"Content-Type": "application/json"})
