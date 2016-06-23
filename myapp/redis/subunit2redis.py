@@ -161,11 +161,11 @@ def process_results(results):
         run_time=run_time,
         run_at=run_at,
         metadata=metadata)
-    """es_client.create_run(
+    es_client.create_run(
         run_id=run_id,
         run_at=run_at,
         run_time=run_time,
-        metadata=metadata)"""
+        metadata=metadata)
     start_run_ts = parse_date_ts(run_at)
     end_run_ts = start_run_ts + run_time
     for test, data in results.items():
