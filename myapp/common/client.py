@@ -30,7 +30,7 @@ def _log_transaction(func):
             self._log.exception(exception)
 
         try:
-            response = func(*args, **kwargs)
+            response = func(self, *args, **kwargs)
         except Exception as exception:
             self._log.critical('Call to Requests failed due to exception')
             self._log.exception(exception)
@@ -95,7 +95,10 @@ class BaseHTTPClient(object):
         return logging.getLogger(get_object_namespace(cls))
 
     @_log_transaction
-    def request(method, url, **kwargs):
+    def request(self, method, url, **kwargs):
+        headers = self.headers
+        headers.update(kwargs.get("headers"))
+        kwargs.update({"headers": headers})
         kwargs.update({"verify": False})
         return requests.request(method, url, **kwargs)
 
@@ -123,14 +126,6 @@ class BaseHTTPClient(object):
     def patch(self, url, **kwargs):
         return self.request('PATCH', url, **kwargs)
 
-    @property
-    def headers(self):
-        return self._s.headers
-
-    @headers.setter
-    def headers(self, value):
-        self._s.headers = value
-
 
 class BaseRaxClient(BaseHTTPClient):
     def __init__(self, url, auth_client):
@@ -140,8 +135,8 @@ class BaseRaxClient(BaseHTTPClient):
     @property
     def token(self):
         self.token = self._auth.token
-        return self._s.headers.get("X-Auth-Token")
+        return self.headers.get("X-Auth-Token")
 
     @token.setter
     def token(self, value):
-        self._s.headers["X-Auth-Token"] = value
+        self.headers["X-Auth-Token"] = value
