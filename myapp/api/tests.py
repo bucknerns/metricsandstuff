@@ -26,7 +26,7 @@ class Tests(BaseAPI):
 
     def on_post(self, req, resp):
         """
-        @api {get} /tests Create Test
+        @api {post} /tests Create Test
         @apiName CreateTest
         @apiGroup Tests
         @apiDescription Create a test and add to a run
