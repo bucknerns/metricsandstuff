@@ -25,7 +25,7 @@ class ElasticsearchClient(BaseHTTPClient):
             data = {"key": k, "value": v}
             self.add_bulk_entry(
                 entries, "run_metadata", data, None, parent=run_id)
-        return self.post(url, data="\n".join(entries))
+        return self.post(url, data="\n".join(entries) + "\n")
 
     def create_test(
         self, test_id, run_id, test_name, status, start_time, end_time,
@@ -45,7 +45,7 @@ class ElasticsearchClient(BaseHTTPClient):
             data = {"key": k, "value": v}
             self.add_bulk_entry(
                 entries, "test_metadata", data, None, parent=run_id)
-        return self.post(url, data="\n".join(entries))
+        return self.post(url, data="\n".join(entries) + "\n")
 
     def create_index(self):
         data = json.dumps({
