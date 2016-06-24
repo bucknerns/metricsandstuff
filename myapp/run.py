@@ -73,12 +73,17 @@ class JsonpSupport(object):
             resp.data = "{0}({1})".format(self.jsonp, resp.data)
 
 
+class AccessControlAllowOrigin(object):
+    def process_response(self, req, resp, resource):
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+
+
 def handle_404(req, resp):
     BaseAPI.not_found()
 
 
 app = falcon.API(media_type="application/json", middleware=[
-    RequireJSON(), JsonpSupport()])
+    RequireJSON(), JsonpSupport(), AccessControlAllowOrigin()])
 for class_ in routes:
     app.add_route(class_.route, class_(redis_client, files_client))
 
