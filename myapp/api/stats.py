@@ -6,7 +6,7 @@ class TestStats(BaseAPI):
 
     def on_get(self, req, resp, test_name):
         """
-        @api {get} /status/{test_name} Get stats by test name
+        @api {get} /stats/{test_name} Get stats by test name
         @apiName GetStatsByName
         @apiGroup Stats
         @apiDescription Get stats by test name

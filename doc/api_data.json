@@ -1495,7 +1495,7 @@
   },
   {
     "type": "get",
-    "url": "/status/{test_name}",
+    "url": "/stats/{test_name}",
     "title": "Get stats by test name",
     "name": "GetStatsByName",
     "group": "Stats",
@@ -1710,7 +1710,7 @@
     }
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/tests",
     "title": "Create Test",
     "name": "CreateTest",
@@ -2281,5 +2281,33 @@
         }
       ]
     }
+  },
+  {
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "optional": false,
+            "field": "varname1",
+            "description": "<p>No type.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "varname2",
+            "description": "<p>With type.</p>"
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "./doc/main.js",
+    "group": "_home_nath4854_code_metrics_metricsandstuff_doc_main_js",
+    "groupTitle": "_home_nath4854_code_metrics_metricsandstuff_doc_main_js",
+    "name": ""
   }
 ]
