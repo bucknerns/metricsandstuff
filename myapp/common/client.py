@@ -140,3 +140,7 @@ class BaseRaxClient(BaseHTTPClient):
     @token.setter
     def token(self, value):
         self.headers["X-Auth-Token"] = value
+
+    def request(self, *args, **kwargs):
+        self.token
+        return super(BaseRaxClient, self).request(*args, **kwargs)

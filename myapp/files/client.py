@@ -11,7 +11,7 @@ from myapp.common.constants import EXPIRE_SECONDS
 
 
 class FilesClient(BaseRaxClient):
-    CONTAINER_COUNT = 16
+    CONTAINER_COUNT = 512
 
     def __init__(
         self, url, auth_client, temp_url_key, container_prefix="",
@@ -152,7 +152,7 @@ class FilesClient(BaseRaxClient):
         return self.get(url, params=params)
 
     def update_account_headers(self, headers=None):
-        return self.s.post(self.url, headers=headers)
+        return self.post(self.url, headers=headers)
 
     def create_container(self, container, headers=None):
         url = "{0}/{1}".format(self.url, container)
