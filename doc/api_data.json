@@ -1906,6 +1906,13 @@
           },
           {
             "group": "Parameters",
+            "type": "Metadata",
+            "optional": false,
+            "field": "metadata",
+            "description": "<p>All other params read as metadata key=value used to filter runs</p>"
+          },
+          {
+            "group": "Parameters",
             "type": "String",
             "allowedValues": [
               "\"passed\"",

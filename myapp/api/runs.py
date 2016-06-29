@@ -80,6 +80,7 @@ class TestsByRunID(BaseAPI):
         @apiParam (URL Variable) {Integer} run_id Run ID of run
         @apiUse pages
         @apiParam (Parameters) {String} [name] Regex name filter
+        @apiUse metadata_params
         @apiUse test_status_param
         @apiUse no_request_body
         @apiUse tests_response
