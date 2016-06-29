@@ -71,7 +71,7 @@ class Attachments(BaseAPI):
             model.attachment_id, model.data, model.name)
 
         if not response.ok:
-            raise Exception("Failed in creating file")
+            raise Exception(response.content)
 
         resp.data = self.redis.create_attachment(
             model.attachment_id, model.name, tempurl).to_json()

@@ -12,7 +12,7 @@ class Keys(object):
     TEST = "9:{0}"  # Hash table - with test info
     TEST_META = "a:{0}:{1}"  # set - with metadata a:{key}:{value}
     TESTS = "b"  # sorted set - tests by timestamp
-    RUN_TESTS_PASSED = "c:{0}"  # list - list of test_ids for run {0}
+    TESTS_PASSED = "c"  # list - list of test_ids for run {0}
     TEST_NAME_TO_INDEX = "d"  # hash - mapping for num to name name to num
     TEST_INDEX_TO_NAME = "e"  # hash - mapping for num to name name to num
     TEST_NAME_COUNT = "f"  # int - count of uniq test names
@@ -23,8 +23,9 @@ class Keys(object):
     ATTACHMENT_REGEXS = "k"  # hash containing name: regex
     ALL_ATTACHMENTS = "l"  # list of attachments
     FILTERS = "n"  # hash filter name: regex
-    RUN_TESTS_FAILED = "o:{0}"  # list - list of test_ids for run {0}
-    RUN_TESTS_SKIPPED = "p:{0}"  # list - list of test_ids for run {0}
+    TESTS_FAILED = "o"  # list - list of test_ids for run {0}
+    TESTS_SKIPPED = "p"  # list - list of test_ids for run {0}
+    RUN_TESTS = "q:{0}"
 
 
 class TestStats(object):

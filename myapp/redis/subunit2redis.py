@@ -263,8 +263,8 @@ def main():
         '.*?response status..: <Response \[(?P<response_status>.*?)\]>\n'
         '.*?response time....: (?P<response_time>.*?)\n'
         '.*?response headers.: (?P<response_headers>.*?)\n'
-        '.*?response body....: (?P<response_body>.*?)\n'
-        '-' * 79)
+        '.*?response body....: (?P<response_body>.*?)\n' +
+        ('-' * 79))
     filter_request = {"name": "opencafe_log_http", "regex": regex}
     requests.post(
         "http://127.0.0.1/api/filters", data=json.dumps(filter_request),

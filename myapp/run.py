@@ -75,10 +75,10 @@ class JsonpSupport(object):
 
 class AccessControlAllowOrigin(object):
     def process_response(self, req, resp, resource):
-        resp.set_headers(
-            {"Access-Control-Allow-Origin": "*",
-             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-             "Access-Control-Allow-Headers": "Content-Type, Access-Control-Allow-Headers"})
+        resp.set_headers({
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Access-Control-Allow-Headers"})
 
 
 def handle_404(req, resp):
