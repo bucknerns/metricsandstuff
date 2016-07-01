@@ -33,18 +33,18 @@ class ElasticsearchClient(BaseHTTPClient):
         return self.post(url, data="\n".join(entries) + "\n")
 
     def create_test(
-        self, test_id, run_id, test_name, status, start_time, end_time,
+        self, test_id, run_id, test_name, status, start_time, stop_time,
             metadata=None):
         metadata = metadata or {}
         entries = []
         url = "{0}/{1}/_bulk".format(self.url, self.index)
         start_time = parse_date_string(start_time)
-        end_time = parse_date_string(end_time)
+        stop_time = parse_date_string(stop_time)
         data = {
             "test_name": test_name,
             "status": status,
             "start_time": start_time,
-            "end_time": end_time}
+            "end_time": stop_time}
 
         # Add metadata to test as keys for now
         for k, v in metadata.items():

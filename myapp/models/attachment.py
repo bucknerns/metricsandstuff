@@ -1,3 +1,5 @@
+from base64 import b64encode
+
 from myapp.models.base import BaseModel
 from myapp.redis.db_layout import Attachment
 
@@ -29,3 +31,20 @@ class AttachmentModel(BaseModel):
             run_id=data.get("run_id"),
             test_id=data.get("test_id"),
             attachment_id=data.get("attachment_id"))
+
+    @classmethod
+    def from_server_dict(cls, data):
+        return cls(
+            attachment_id=data.get("attachment_id"),
+            name=data.get("name"),
+            location=data.get("location"))
+
+    def to_server_dict(self):
+        dic = {
+            "name": self.name,
+            "data": b64encode(self.data)}
+        if self.test_id is not None:
+            dic["test_id"] = self.test_id
+        if self.run_id is not None:
+            dic["run_id"] = self.run_id
+        return dic

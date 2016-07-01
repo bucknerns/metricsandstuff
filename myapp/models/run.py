@@ -43,3 +43,21 @@ class RunModel(BaseModel):
             run_at=cls._api.handle_date(data.get("run_at"), "run_at", False),
             run_time=cls._api.handle_float(
                 data.get("run_time"), "run_time", False))
+
+    @classmethod
+    def from_server_dict(cls, data):
+        return cls(
+            run_id=data.get("run_id"),
+            skipped=data.get("skipped"),
+            failed=data.get("failed"),
+            passed=data.get("passed"),
+            run_at=data.get("run_at"),
+            run_time=data.get("run_time"),
+            metadata=data.get("metadata"))
+
+    def to_server_dict(self):
+        dic = {
+            "run_at": self.run_at,
+            "run_time": self.run_time}
+        dic["metadata"] = self.metadata or {}
+        return dic

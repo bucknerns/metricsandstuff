@@ -48,3 +48,24 @@ class TestModel(BaseModel):
             stop_time=cls._api.handle_date(data.get("stop_time"), "stop_time"),
             test_name=cls._api.handle_string(
                 data.get("test_name"), "test_name"))
+
+    @classmethod
+    def from_server_dict(cls, data):
+        return cls(
+            test_id=data.get("test_id"),
+            run_id=data.get("run_id"),
+            status=data.get("status"),
+            start_time=data.get("start_time"),
+            stop_time=data.get("stop_time"),
+            metadata=data.get("metadata"),
+            test_name=data.get("test_name"))
+
+    def to_server_dict(self):
+        dic = {
+            "run_id": self.run_id,
+            "status": self.status,
+            "start_time": self.start_time,
+            "stop_time": self.stop_time,
+            "test_name": self.test_name}
+        dic["metadata"] = self.metadata or {}
+        return dic

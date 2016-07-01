@@ -77,7 +77,7 @@ class RedisClient(object):
         return run_id
 
     def create_test(
-        self, run_id, test_name, status, start_time, end_time,
+        self, run_id, test_name, status, start_time, stop_time,
             metadata=None):
         metadata = metadata or {}
         test_id = self.r.incr(Keys.NEXT_TEST)
@@ -86,7 +86,7 @@ class RedisClient(object):
         stats_key = Keys.TEST_STATS.format(test_name)
         run_tests_key = Keys.RUN_TESTS.format(run_id)
         start_time = parse_date_ts(start_time)
-        end_time = parse_date_ts(end_time)
+        stop_time = parse_date_ts(stop_time)
 
         status = TEST_STATUSES.index(status)
 
@@ -109,7 +109,7 @@ class RedisClient(object):
             Test.NAME: index,
             Test.STATUS: status,
             Test.START_TIME: start_time,
-            Test.RUN_TIME: end_time - start_time,
+            Test.RUN_TIME: stop_time - start_time,
             Test.RUN_ID: run_id}
 
         for k, v in metadata.items():

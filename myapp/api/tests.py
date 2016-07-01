@@ -42,7 +42,7 @@ class Tests(BaseAPI):
             test_name=model.test_name,
             status=model.status,
             start_time=model.start_time,
-            end_time=model.end_time,
+            stop_time=model.stop_time,
             metadata=model.metadata)
         model.test_id = test_id
         resp.data = model.to_json()
