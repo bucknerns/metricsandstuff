@@ -4,151 +4,30 @@ metricsandstuff
 
 Setting up a Dev Environment
 ============================
-
-This is assuming that you are creating a general1-8 server on RAX Public Cloud
-running Ubuntu 14.04 (Trusty Tahr). Please note that when creating the config
-file, it is loaded from the sys.prefix location (which will differ from ~ when
-running inside of a virtual environment).
-
-MySQL
------
-
-1. Update the package list:
+1. Clone deploymetrics:
+""
+    > git clone http://github.com/bucknerns/deploymetrics
+    
+2. Configure cloudfile in api_config.ini (optional for attachment support)
 ::
-    > apt-get update
-
-2. Install the following packages:
+    > [auth]
+    url=https://identity.api.rackspacecloud.com/v2.0
+    username=<username>
+    apikey=<api key>
+    
+    [files]
+    url=<files endpoint> example: https://storage101.dfw1.clouddrive.com/v1/MossoCloudFS_<accountnum>
+    temp_url_key=<tempurl key(just a random string)>
+    prefix=<container prefix>
+    
+3. As root run install_all.sh
 ::
-    > apt-get install mysql-server libmysqlclient-dev python-dev python-pip git
-
-3. During the mysql-server install it will ask you to enter a password for the
-root user, for this example we'll use ``abc123``
-
-4. Log in to mysql and create a database named ``subunit``
+    > ./install_all.sh
+    
+Note: File attachment will still not work if the temp_url_key hasn't been set on the account and the containers have not been created.  Use files client to do this.(only do this once per container prefix, sharing the same account for different deployments can be done with different prefixes but the temp_url_key has to be the same)
 ::
-    > mysql -u root -p
-    Enter password:
-    mysql> create database subunit;
-    Query OK, 1 row affected (0.00 sec)
-
-5. Git clone subunit2sql
-::
-    > git clone https://github.com/openstack-infra/subunit2sql
-
-6. Git clone metricsandstuff
-::
-    > git clone https://github.com/bucknerns/metricsandstuff
-
-7. Install mysql-python
-::
-    > pip install mysql-python
-
-8. Install subunit2sql
-::
-    > pip install subunit2sql/
-
-9. Install metricsandstuff
-::
-    > pip install metricsandstuff/
-
-10. Create metricsandstuff database config
-::
-    > cat > ~/.metricsandstuff/my.cnf <<EOL
-    [database]
-    username=root
-    password=abc123
-    url=127.0.0.1
-    database=subunit
-    connection_string=mysql
-    EOL
-
-10. Update the database schema via subunit2sql-db-manage
-::
-    > subunit2sql-db-manage --database-connection mysql://root:abc123@127.0.0.1/subunit upgrade head
-
-11. Insert subunit data into the database (in this example we're using a
-subunit output of tempest)
-::
-    > subunit-1to2 tempest.subunit | subunit2sql --database-connection mysql://root:abc123@127.0.0.1/subunit
-
-12. Install gunicorn
-::
-    > pip install gunicorn
-
-13. Run metricsandstuff
-::
-    > gunicorn -b 0.0.0.0:80 myapp.run:app
-
-PostgreSQL
-----------
-
-1. Update the package list:
-::
-    > apt-get update
-
-2. Install the following packages:
-::
-    > apt-get install postgresql postgresql-contrib libpq-dev python-dev python-pip git
-
-3. Switch to the postgres user, connect to PostgreSQL, create a ``root`` user
-with password ``abc123``, create a ``subunit`` database, and grant the user all
-privileges on the database
-::
-    > sudo su - postgres
-    > psql
-    postgres=# create user root password 'abc123';
-    CREATE ROLE
-    postgres=# create database subunit;
-    CREATE DATABASE
-    postgres=# grant all privileges on database subunit to root;
-    GRANT
-    postgres=# \q
-    > logout
-
-4. Git clone subunit2sql
-::
-    > git clone https://github.com/openstack-infra/subunit2sql
-
-5. Git clone metricsandstuff
-::
-    > git clone https://github.com/bucknerns/metricsandstuff
-
-6. Install psycopg2
-::
-    > pip install psycopg2
-
-7. Create metricsandstuff database config
-::
-    > cat > ~/.metricsandstuff/my.cnf <<EOL
-    [database]
-    username=root
-    password=abc123
-    url=127.0.0.1
-    database=subunit
-    connection_string=postgresql+psycopg2
-    EOL
-
-8. Install subunit2sql
-::
-    > pip install subunit2sql/
-
-9. Install metricsandstuff
-::
-    > pip install metricsandstuff/
-
-10. Update the database schema via subunit2sql-db-manage
-::
-    > subunit2sql-db-manage --database-connection postgresql+psycopg2://root:abc123@127.0.0.1/subunit upgrade head
-
-11. Insert subunit data into the database (in this example we're using a
-subunit output of tempest)
-::
-    > subunit-1to2 tempest.subunit | subunit2sql --database-connection postgresql+psycopg2://root:abc123@127.0.0.1/subunit
-
-12. Install gunicorn
-::
-    > pip install gunicorn
-
-13. Run metricsandstuff
-::
-    > gunicorn -b 0.0.0.0:80 myapp.run:app
+    > In [1]: from myapp.files.client import FilesClient
+    In [2]: from myapp.auth.client import AuthClient
+    In [3]: ac = AuthClient("https://identity.api.rackspacecloud.com/v2.0", "<username>", "<apikey>")
+    In [4]: c = FilesClient("https://storage101.dfw1.clouddrive.com/v1/MossoCloudFS_<accountnum>", ac, temp_url_key="<tempurl key>", container_prefix="<container prefix>")
+    In [5]: c.init_files_account()
