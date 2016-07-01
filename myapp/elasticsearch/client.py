@@ -20,6 +20,11 @@ class ElasticsearchClient(BaseHTTPClient):
             "start_time": parse_date_string(run_at),
             "end_time": parse_date_string(
                 parse_date_ts(run_at) + parse_date_ts(run_time))}
+
+        # Add metadata to run as keys for now
+        for k, v in metadata.items():
+            data[k] = v
+
         self.add_bulk_entry(entries, "run", data, id_=run_id)
         for k, v in metadata.items():
             data = {"key": k, "value": v}
@@ -40,11 +45,16 @@ class ElasticsearchClient(BaseHTTPClient):
             "status": status,
             "start_time": start_time,
             "end_time": end_time}
+
+        # Add metadata to test as keys for now
+        for k, v in metadata.items():
+            data[k] = v
+
         self.add_bulk_entry(entries, "test", data, id_=test_id, parent=run_id)
         for k, v in metadata.items():
             data = {"key": k, "value": v}
             self.add_bulk_entry(
-                entries, "test_metadata", data, None, parent=run_id)
+                entries, "test_metadata", data, None, parent=test_id)
         return self.post(url, data="\n".join(entries) + "\n")
 
     def create_index(self):
