@@ -8,7 +8,7 @@ Setting up a Dev Environment
 ::
     git clone http://github.com/bucknerns/deploymetrics
     
-2. Configure cloudfile in api_config.ini (optional for attachment support)
+2. Configure cloudfiles in api_config.ini (optional for attachment support)
 ::
     [auth]
     url=https://identity.api.rackspacecloud.com/v2.0
